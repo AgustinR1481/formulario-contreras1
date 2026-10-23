@@ -4,17 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Formulario Contreras</title>
-  <link rel="stylesheet" href="styles.css?v=53">
+  <link rel="stylesheet" href="styles.css?v=54">
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-  <script defer src="app.js?v=53"></script>
+  <script defer src="app.js?v=54"></script>
 </head>
 <body>
 <main id="ec49">
   <h2>Formulario Contreras</h2>
-  <p class="version">Entrega 53 · Cargar / Actualizar, Buscar y Eliminar</p>
+  <p class="version">Entrega 54 · Cargar / Actualizar, Buscar, Eliminar y Nueva carga</p>
   <p class="intro">Complete el formulario de Excel. Al guardar se registrará su usuario de Microsoft.</p>
   <p class="identity">Usuario: <strong id="ec49-user">se consulta al ejecutar</strong></p>
   <button id="ec49-save" type="button">Cargar / Actualizar solicitud</button>
+  <button id="ec54-new" class="secondary" type="button">Nueva carga / Limpiar formulario</button>
   <section class="search">
     <label for="ec52-cuil">CUIL que desea buscar</label>
     <input id="ec52-cuil" type="text" inputmode="numeric" autocomplete="off" placeholder="11 dígitos, sin guiones" aria-describedby="ec52-search-help">
@@ -36,6 +37,12 @@
     <p id="ec53-delete-confirm-text"></p>
     <button id="ec53-delete-confirm" class="danger" type="button">Sí, eliminar esta solicitud</button>
     <button id="ec53-delete-cancel" class="secondary" type="button">Cancelar y conservar solicitud</button>
+  </section>
+  <section id="ec54-new-confirm-box" class="question" hidden>
+    <h3>Descartar cambios sin guardar</h3>
+    <p>¿Desea descartar los cambios sin guardar y comenzar una nueva carga? Se conservarán Motivo de la solicitud, Fecha de solicitud, Área solicitante e ID Solicitante. Base y Auditoría se conservarán.</p>
+    <button id="ec54-new-confirm" type="button">Sí, descartar cambios y limpiar</button>
+    <button id="ec54-new-cancel" class="secondary" type="button">Cancelar y conservar formulario</button>
   </section>
   <div id="ec49-message" class="message" role="status" aria-live="polite">Iniciando…</div>
   <section id="ec49-confirm-box" class="question" hidden>

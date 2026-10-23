@@ -1,8 +1,8 @@
-/* Entrega 53. Complemento Formulario Contreras para Excel (Office.js).
+/* Entrega 54. Complemento Formulario Contreras para Excel (Office.js).
    Basado en el script 41 suministrado por Agus. NO pegar en Automatizar.
    La identidad se consulta en cada operación y nunca se lee de una celda.
 */
-const ec49 = { busy: false, pending: null, saved: null, searchPending: null, deletePending: null };
+const ec49 = { busy: false, pending: null, saved: null, searchPending: null, deletePending: null, newPending: null };
 const formProtection49 = {
   allowFormatRows: true, allowFormatColumns: true,
   allowFormatCells: true, allowEditObjects: true
@@ -10,7 +10,7 @@ const formProtection49 = {
 
 Office.onReady(() => {
   const button = document.getElementById("ec49-save");
-  if (!button) { console.log("Entrega 53: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
+  if (!button) { console.log("Entrega 54: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
   button.addEventListener("click", () => task49(start49));
   document.getElementById("ec49-confirm").addEventListener("click", () => task49(confirm49));
   document.getElementById("ec49-cancel").addEventListener("click", () => {
@@ -33,13 +33,18 @@ Office.onReady(() => {
   document.getElementById("ec53-delete-cancel").addEventListener("click", () => {
     cancelDelete53(); message49("Eliminación cancelada. Base, Auditoría y el formulario se conservaron.");
   });
+  document.getElementById("ec54-new").addEventListener("click", () => task49(() => new54(false)));
+  document.getElementById("ec54-new-confirm").addEventListener("click", () => task49(() => new54(true)));
+  document.getElementById("ec54-new-cancel").addEventListener("click", () => {
+    cancelNew54(); message49("Nueva carga cancelada. Se conservaron los datos del formulario.");
+  });
   message49("Listo. Complete el formulario de Excel y pulse Cargar / Actualizar aquí.");
 });
 function section49(id, show) { document.getElementById(id).hidden = !show; }
 function message49(text, ok = false) {
   const box = document.getElementById("ec49-message");
   box.textContent = text; box.className = ok ? "message success" : "message";
-  console.log("ENTREGA 53: " + text);
+  console.log("ENTREGA 54: " + text);
 }
 async function task49(action) {
   if (ec49.busy) return;
@@ -47,6 +52,7 @@ async function task49(action) {
   document.querySelectorAll("#ec49 button").forEach(button => button.disabled = true);
   try { await action(); }
   catch (error) {
+    cancelNew54();
     cancelDelete53();
     ec49.pending = null; ec49.searchPending = null;
     section49("ec49-confirm-box", false); section49("ec52-search-confirm-box", false);
@@ -220,6 +226,7 @@ function signature49(s) {
   return JSON.stringify([s.baseId, s.metaId, s.formId, s.auditId, s.fields, s.start, s.end, s.rawBase, raw, s.catalogs]);
 }
 async function start49() {
+  cancelNew54();
   cancelDelete53();
   ec49.searchPending = null; section49("ec52-search-confirm-box", false);
   ec49.pending = null; ec49.saved = null;
@@ -412,6 +419,7 @@ async function fillForm49(context, s, values, plan, notice = "") {
   });
 }
 async function clean49() {
+  cancelNew54();
   cancelDelete53();
   const saved = ec49.saved;
   if (!saved) throw new Error("No hay una carga recién guardada para limpiar.");
@@ -434,7 +442,7 @@ async function clean49() {
 }
 
 
-// Entrega 53: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
+// Entrega 54: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
 function searchSignature52(s) {
   return JSON.stringify([s.baseId, s.formId, s.metaId, s.fields, s.start, s.rawBase, s.raw, s.baseline]);
 }
@@ -457,6 +465,7 @@ async function search52(confirmDiscard = false) {
   const cuil = String(document.getElementById("ec52-cuil").value || "").trim();
   if (!/^\d{11}$/.test(cuil)) throw new Error("Ingrese un CUIL de 11 dígitos, sin guiones ni espacios, en el panel.");
   if (!confirmDiscard) {
+    cancelNew54();
     cancelDelete53();
     ec49.searchPending = null;
     ec49.pending = null; ec49.saved = null;
@@ -493,7 +502,7 @@ async function search52(confirmDiscard = false) {
 }
 
 
-// Entrega 53: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
+// Entrega 54: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
 function cancelDelete53() {
   ec49.deletePending = null; section49("ec53-delete-confirm-box", false);
 }
@@ -531,6 +540,7 @@ async function checkDeleteAccess53(context) {
 async function delete53(confirm = false) {
   const pending = ec49.deletePending;
   if (!confirm) {
+    cancelNew54();
     cancelDelete53(); ec49.pending = null; ec49.searchPending = null; ec49.saved = null;
     section49("ec49-confirm-box", false); section49("ec52-search-confirm-box", false); section49("ec49-clean-box", false);
   }
@@ -622,4 +632,117 @@ async function delete53(confirm = false) {
   cancelDelete53(); ec49.pending = null; ec49.searchPending = null; ec49.saved = null;
   section49("ec49-confirm-box", false); section49("ec52-search-confirm-box", false); section49("ec49-clean-box", false);
   message49("Solicitud del CUIL " + outcome.cuil + " eliminada de esta entrega. Auditoría registró el contenido eliminado y el usuario " + identity.user + "." + (outcome.warning || " Formulario listo para una nueva carga."), true);
+}
+
+
+// Entrega 54: Nueva carga depende solo del formulario y su mapa, como el script 15.
+function cancelNew54() {
+  ec49.newPending = null; section49("ec54-new-confirm-box", false);
+}
+async function readNew54(context) {
+  const sheets = context.workbook.worksheets;
+  const form = sheets.getItemOrNullObject("EC_Formulario"), meta = sheets.getItemOrNullObject("EC_Campos");
+  form.load("name,id"); meta.load("name,id"); await context.sync();
+  if (form.isNullObject || meta.isNullObject) throw new Error("No se encontró el formulario o el mapa de campos.");
+  meta.protection.load("protected");
+  const map = meta.getUsedRangeOrNullObject(true); map.load("values");
+  const state = meta.getRange("J2:L2"); state.load("values"); await context.sync();
+  if (meta.protection.protected) throw new Error("No se limpió el formulario: desproteja EC_Campos antes de continuar.");
+  if (map.isNullObject) throw new Error("El mapa de campos está vacío.");
+  const fields = map.values.slice(1).filter(f => String(f[0]).trim() !== "").map(f => f.slice(0, 8));
+  if (!fields.length) throw new Error("No se encontraron campos en el mapa.");
+  const rows = fields.filter(f => !replica49(f)).map(f => Number(f[4]));
+  if (!rows.length || rows.some(r => !Number.isInteger(r) || r < 7 || r > 10000)) throw new Error("El mapa contiene una fila de formulario inválida.");
+  const data = form.getRangeByIndexes(0, 2, Math.max(...rows), 1); data.load("values"); await context.sync();
+  const cells = fields.map(f => replica49(f) ? "" : data.values[Number(f[4]) - 1][0]);
+  const raw = replicate49(fields, fields.map((f, i) => text49(cells[i], String(f[3]))));
+  const current = raw.map((v, i) => ["Usuario Carga", "Fecha/Hora Carga"].includes(String(fields[i][3])) ? "" : v);
+  const hasData = fields.some((f, i) => (String(f[1]) !== "Solicitud" || String(f[3]) === "Notas") && current[i] !== "");
+  return { fields, cells, raw, current, metaState: state.values.map(r => r.slice()), formId: form.id, metaId: meta.id,
+    unsaved: hasData && JSON.stringify(current) !== String(state.values[0][0]) };
+}
+function newSignature54(s) { return JSON.stringify([s.formId, s.metaId, s.fields, s.cells, s.metaState]); }
+async function clearOldConfirmation54(context) {
+  const sheet = context.workbook.worksheets.getItemOrNullObject("EC_Confirmacion");
+  sheet.load("name"); await context.sync();
+  if (sheet.isNullObject) return;
+  sheet.protection.load("protected"); await context.sync();
+  if (sheet.protection.protected) return;
+  const range = sheet.getUsedRangeOrNullObject(true); range.load("address"); await context.sync();
+  if (!range.isNullObject) { range.clear("Contents"); await context.sync(); }
+}
+async function new54(confirmDiscard = false) {
+  const pending = ec49.newPending;
+  if (!confirmDiscard) {
+    cancelNew54(); cancelDelete53(); ec49.pending = null; ec49.searchPending = null; ec49.saved = null;
+    section49("ec49-confirm-box", false); section49("ec52-search-confirm-box", false); section49("ec49-clean-box", false);
+  }
+  const identity = await identity49();
+  message49("Revisando los datos del formulario…");
+  await Excel.run(async context => {
+    const s = await readNew54(context);
+    if (confirmDiscard) {
+      if (!pending || Date.now() - pending.created > 900000) throw new Error("La confirmación venció. Pulse Nueva carga nuevamente.");
+      if (identity.user !== pending.identity.user || identity.objectId !== pending.identity.objectId || identity.tenantId !== pending.identity.tenantId)
+        throw new Error("Cambió la cuenta Microsoft. No se limpió el formulario. Pulse Nueva carga nuevamente.");
+      if (newSignature54(s) !== pending.signature) throw new Error("El formulario, el mapa o la selección cambiaron desde el aviso. No se limpió nada. Pulse Nueva carga para revisar y confirmar nuevamente.");
+    } else if (s.unsaved) {
+      ec49.newPending = { identity, created: Date.now(), signature: newSignature54(s) };
+      section49("ec54-new-confirm-box", true);
+      message49("Hay cambios sin guardar. Confirme si desea descartarlos para comenzar una nueva carga.");
+      return;
+    }
+    const keep = ["Motivo de la solicitud", "Fecha de solicitud", "Área solicitante", "ID Solicitante"];
+    const clearIndexes = s.fields.map((f, i) => !replica49(f) && !keep.includes(String(f[3])) ? i : -1).filter(i => i >= 0);
+    let cleared = false;
+    try {
+      await withForm49(context, async form => {
+        // Volver a comprobar después de desproteger: el usuario puede haber seguido editando.
+        const latest = await readNew54(context);
+        if (newSignature54(latest) !== newSignature54(s)) throw new Error("El formulario cambió durante la revisión. No se limpió nada; vuelva a pulsar Nueva carga.");
+        const meta = context.workbook.worksheets.getItem("EC_Campos");
+        try {
+          for (const i of clearIndexes) form.getRange("C" + String(s.fields[i][4])).clear("Contents");
+          meta.getRange("J2:L2").clear("Contents");
+          await context.sync();
+          const actual = await readNew54(context);
+          if (clearIndexes.some(i => String(actual.cells[i]) !== "") || actual.metaState[0].some(v => String(v) !== ""))
+            throw new Error("No se pudo verificar la limpieza del formulario.");
+          cleared = true;
+        } catch (error) {
+          try {
+            const actual = await readNew54(context);
+            if (JSON.stringify(actual.fields) !== JSON.stringify(s.fields)) throw new Error("Cambió el mapa de campos; no se restauró automáticamente.");
+            if (clearIndexes.some(i => String(actual.cells[i]) !== "" && JSON.stringify(actual.cells[i]) !== JSON.stringify(s.cells[i])))
+              throw new Error("Hay nuevos datos ajenos a esta limpieza; no se sobrescribieron.");
+            if (JSON.stringify(actual.metaState) !== JSON.stringify(s.metaState) && actual.metaState[0].some(v => String(v) !== ""))
+              throw new Error("Cambió la selección; no se restauró automáticamente.");
+            for (const i of clearIndexes) if (String(actual.cells[i]) === "") form.getRange("C" + String(s.fields[i][4])).values = [[literal49(s.cells[i])]];
+            meta.getRange("J2:L2").values = s.metaState.map(r => r.map(v => literal49(v)));
+            await context.sync();
+          } catch (rollback) {
+            throw new Error("No se pudo completar ni restaurar la limpieza con seguridad. Revise los datos del formulario antes de continuar. " + String(rollback && rollback.message ? rollback.message : rollback));
+          }
+          throw new Error("No se completó la limpieza; se restauraron los valores anteriores. " + String(error && error.message ? error.message : error));
+        }
+        const box = form.getRange("B5:C6"); box.unmerge(); box.merge(false);
+        form.getRange("B5").values = [["Formulario listo para una nueva carga. Se conservaron Motivo, Fecha de solicitud, Área solicitante e ID Solicitante. Base y Auditoría se conservaron."]];
+        box.format.wrapText = true; box.format.font.size = 12; box.format.font.bold = true;
+        box.format.font.color = "#375623"; box.format.fill.color = "#E2F0D9";
+        form.getRange("5:5").format.rowHeight = 90; form.getRange("6:6").format.rowHeight = 12;
+        await context.sync();
+      });
+    } catch (error) {
+      cancelNew54();
+      if (!cleared) throw error;
+      message49("El formulario YA se limpió. Se conservaron los datos principales de Solicitud, Base y Auditoría. No se pudo completar el aviso o restablecer la protección: " + String(error && error.message ? error.message : error));
+      return;
+    }
+    cancelNew54();
+    let warning = "";
+    try { await clearOldConfirmation54(context); }
+    catch { warning = " No se pudo limpiar la confirmación del botón antiguo; utilice el panel actualizado para continuar."; }
+    document.getElementById("ec52-cuil").value = "";
+    message49("Formulario listo para una nueva carga. Se conservaron Motivo, Fecha de solicitud, Área solicitante e ID Solicitante. Base y Auditoría se conservaron." + warning, true);
+  });
 }
