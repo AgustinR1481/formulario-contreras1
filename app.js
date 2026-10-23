@@ -1,4 +1,4 @@
-/* Entrega 54. Complemento Formulario Contreras para Excel (Office.js).
+/* Entrega 55. Complemento Formulario Contreras para Excel (Office.js).
    Basado en el script 41 suministrado por Agus. NO pegar en Automatizar.
    La identidad se consulta en cada operación y nunca se lee de una celda.
 */
@@ -10,7 +10,7 @@ const formProtection49 = {
 
 Office.onReady(() => {
   const button = document.getElementById("ec49-save");
-  if (!button) { console.log("Entrega 54: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
+  if (!button) { console.log("Entrega 55: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
   button.addEventListener("click", () => task49(start49));
   document.getElementById("ec49-confirm").addEventListener("click", () => task49(confirm49));
   document.getElementById("ec49-cancel").addEventListener("click", () => {
@@ -38,13 +38,25 @@ Office.onReady(() => {
   document.getElementById("ec54-new-cancel").addEventListener("click", () => {
     cancelNew54(); message49("Nueva carga cancelada. Se conservaron los datos del formulario.");
   });
+  document.getElementById("ec55-tab-form").addEventListener("click", () => selectTab55("form"));
+  document.getElementById("ec55-tab-base").addEventListener("click", () => selectTab55("base"));
+  document.getElementById("ec55-show-all").addEventListener("click", () => task49(showAll55));
+  for (const [id, target] of [["ec55-tab-form", "base"], ["ec55-tab-base", "form"]]) {
+    document.getElementById(id).addEventListener("keydown", event => {
+      if (["ArrowLeft", "ArrowRight"].includes(event.key)) {
+        event.preventDefault(); selectTab55(target);
+        document.getElementById("ec55-tab-" + target).focus();
+      }
+    });
+  }
+  selectTab55("form");
   message49("Listo. Complete el formulario de Excel y pulse Cargar / Actualizar aquí.");
 });
 function section49(id, show) { document.getElementById(id).hidden = !show; }
 function message49(text, ok = false) {
   const box = document.getElementById("ec49-message");
   box.textContent = text; box.className = ok ? "message success" : "message";
-  console.log("ENTREGA 54: " + text);
+  console.log("ENTREGA 55: " + text);
 }
 async function task49(action) {
   if (ec49.busy) return;
@@ -329,11 +341,11 @@ async function save49(previous, identity, allowUpdate) {
 }
 
 // La vista de Base conserva el ajuste de la entrega 41: unión de campos con contenido.
-function view49(context, s, plan, values) {
+function view49(context, s, plan, values, showAll = false) {
   const base = context.workbook.worksheets.getItem("EC_Base");
   const rows = s.rawBase.map(row => row.slice());
-  rows[plan.row - s.start] = values;
-  const visible = s.fields.map((f, c) => rows.some(row => row && String(row[c]).trim() !== ""));
+  if (plan) rows[plan.row - s.start] = values;
+  const visible = s.fields.map((f, c) => showAll || rows.some(row => row && String(row[c]).trim() !== ""));
   const titles = base.getRangeByIndexes(s.start - 4, 0, 2, s.fields.length);
   titles.unmerge(); titles.clear("Contents");
   for (let level = 0; level < 2; level++) {
@@ -368,12 +380,13 @@ function view49(context, s, plan, values) {
     }
     first = end;
   }
-  const last = Math.max(s.end, plan.row);
+  const last = Math.max(s.end, plan ? plan.row : s.start - 1);
   for (let c = 0; c < visible.length; c++) {
     base.getRangeByIndexes(0, c, 1, 1).columnHidden = !visible[c];
     if (visible[c] && c !== 6) base.getRangeByIndexes(s.start - 2, c, last - s.start + 2, 1).format.autofitColumns();
   }
   if (Number.isFinite(s.fixedG) && s.fixedG > 0) base.getRange("G:G").format.columnWidth = s.fixedG;
+  if (last < s.start) return;
   const data = base.getRangeByIndexes(s.start - 1, 0, last - s.start + 1, s.fields.length);
   data.format.fill.color = "#FFFFFF";
   for (const side of ["EdgeTop", "EdgeBottom", "EdgeLeft", "EdgeRight", "InsideHorizontal", "InsideVertical"]) {
@@ -442,7 +455,7 @@ async function clean49() {
 }
 
 
-// Entrega 54: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
+// Entrega 55: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
 function searchSignature52(s) {
   return JSON.stringify([s.baseId, s.formId, s.metaId, s.fields, s.start, s.rawBase, s.raw, s.baseline]);
 }
@@ -502,7 +515,7 @@ async function search52(confirmDiscard = false) {
 }
 
 
-// Entrega 54: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
+// Entrega 55: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
 function cancelDelete53() {
   ec49.deletePending = null; section49("ec53-delete-confirm-box", false);
 }
@@ -635,7 +648,7 @@ async function delete53(confirm = false) {
 }
 
 
-// Entrega 54: Nueva carga depende solo del formulario y su mapa, como el script 15.
+// Entrega 55: Nueva carga depende solo del formulario y su mapa, como el script 15.
 function cancelNew54() {
   ec49.newPending = null; section49("ec54-new-confirm-box", false);
 }
@@ -745,4 +758,49 @@ async function new54(confirmDiscard = false) {
     document.getElementById("ec52-cuil").value = "";
     message49("Formulario listo para una nueva carga. Se conservaron Motivo, Fecha de solicitud, Área solicitante e ID Solicitante. Base y Auditoría se conservaron." + warning, true);
   });
+}
+
+
+// Entrega 55: navegación visual del panel. Cambiar pestaña no modifica el libro.
+function selectTab55(tab) {
+  if (ec49.busy || !["form", "base"].includes(tab)) return;
+  for (const name of ["form", "base"]) {
+    const button = document.getElementById("ec55-tab-" + name);
+    const panel = document.getElementById("ec55-panel-" + name);
+    button.setAttribute("aria-selected", String(name === tab));
+    button.tabIndex = name === tab ? 0 : -1;
+    panel.hidden = name !== tab;
+  }
+}
+// Este botón solo lee el esquema y ajusta la vista. No requiere editar Auditoría ni el formulario.
+async function readBaseView55(context) {
+  const sheets = context.workbook.worksheets;
+  const base = sheets.getItemOrNullObject("EC_Base"), meta = sheets.getItemOrNullObject("EC_Campos");
+  base.load("name,id"); meta.load("name,id"); await context.sync();
+  if (base.isNullObject || meta.isNullObject) throw new Error("Faltan EC_Base o EC_Campos.");
+  const map = meta.getUsedRangeOrNullObject(true); map.load("values");
+  const settings = meta.getRange("P2:Q2"); settings.load("values");
+  const used = base.getUsedRangeOrNullObject(true); used.load("rowIndex,rowCount");
+  base.protection.load("protected"); await context.sync();
+  if (base.protection.protected) throw new Error("Desproteja EC_Base para mostrar todos sus campos.");
+  if (map.isNullObject) throw new Error("EC_Campos está vacío.");
+  const fields = map.values.slice(1).filter(f => String(f[0]).trim() !== "").map(f => f.slice(0, 8));
+  const start = Number(settings.values[0][0]) || 4;
+  if (!fields.length || ![4, 6].includes(start)) throw new Error("Revise el mapa de campos y el inicio de Base.");
+  const headers = base.getRangeByIndexes(start - 2, 0, 1, fields.length); headers.load("text"); await context.sync();
+  if (headers.text[0].some((v, i) => v !== String(fields[i][3]))) throw new Error("Base no coincide con EC_Campos. No se ajustó la vista.");
+  const end = Math.max(start - 1, used.isNullObject ? start - 1 : used.rowIndex + used.rowCount);
+  if ((end - start + 1) * fields.length > 500000) throw new Error("El rango usado de Base es demasiado grande. Revise las filas con contenido antes de ajustar la vista.");
+  return { fields, start, end, fixedG: Number(settings.values[0][1]), rawBase: [] };
+}
+async function showAll55() {
+  message49("Mostrando todos los campos de Base…");
+  const total = await Excel.run(async context => {
+    const s = await readBaseView55(context);
+    view49(context, s, null, null, true);
+    await context.sync();
+    context.workbook.worksheets.getItem("EC_Base").activate(); await context.sync();
+    return s.fields.length;
+  });
+  message49("Base muestra sus " + total + " campos. La próxima carga o actualización volverá a ocultar las columnas vacías en toda la entrega. Los registros y Auditoría se conservaron.", true);
 }
