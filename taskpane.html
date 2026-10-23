@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Formulario Contreras</title>
+  <link rel="stylesheet" href="styles.css?v=50">
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <script defer src="app.js?v=50"></script>
+</head>
+<body>
+<main id="ec49">
+  <h2>Cargar / Actualizar</h2>
+  <p class="intro">Complete el formulario de Excel. Al guardar se registrará su usuario de Microsoft.</p>
+  <p class="identity">Usuario: <strong id="ec49-user">se consulta al ejecutar</strong></p>
+  <button id="ec49-save" type="button">Cargar / Actualizar solicitud</button>
+  <div id="ec49-message" class="message" role="status" aria-live="polite">Iniciando…</div>
+  <section id="ec49-confirm-box" class="question" hidden>
+    <h3>Confirmar actualización</h3>
+    <p id="ec49-confirm-text"></p>
+    <button id="ec49-confirm" type="button">Sí, sobrescribir todos los campos</button>
+    <button id="ec49-cancel" class="secondary" type="button">Cancelar</button>
+  </section>
+  <section id="ec49-clean-box" class="question" hidden>
+    <h3>Solicitud guardada</h3>
+    <p>¿Desea limpiar el formulario para cargar otra persona?</p>
+    <button id="ec49-clean" type="button">Sí, limpiar formulario</button>
+    <button id="ec49-keep" class="secondary" type="button">No, conservar los datos</button>
+  </section>
+</main>
+<noscript>Habilite JavaScript para usar el complemento.</noscript>
+</body></html>

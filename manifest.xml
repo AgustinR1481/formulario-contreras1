@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+ xsi:type="TaskPaneApp">
+ <Id>9be0b02e-c054-52b4-873d-4d48e37b6752</Id>
+ <Version>1.0.0.0</Version>
+ <ProviderName>Grupo Contreras</ProviderName>
+ <DefaultLocale>es-AR</DefaultLocale>
+ <DisplayName DefaultValue="Formulario Contreras"/>
+ <Description DefaultValue="Carga y actualización de solicitudes con identificación del usuario Microsoft."/>
+ <IconUrl DefaultValue="https://agustinr1481.github.io/formulario-contreras/icon32.png"/>
+ <HighResolutionIconUrl DefaultValue="https://agustinr1481.github.io/formulario-contreras/icon80.png"/>
+ <SupportUrl DefaultValue="https://github.com/AgustinR1481/formulario-contreras"/>
+ <AppDomains><AppDomain>https://agustinr1481.github.io</AppDomain></AppDomains>
+ <Hosts><Host Name="Workbook"/></Hosts>
+ <Requirements><Sets DefaultMinVersion="1.1"><Set Name="ExcelApi" MinVersion="1.7"/></Sets></Requirements>
+ <DefaultSettings><SourceLocation DefaultValue="https://agustinr1481.github.io/formulario-contreras/taskpane.html"/></DefaultSettings>
+ <Permissions>ReadWriteDocument</Permissions>
+ <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+  <Hosts>
+   <Host xsi:type="Workbook">
+    <DesktopFormFactor>
+     <FunctionFile resid="Contreras.Taskpane.Url"/>
+     <ExtensionPoint xsi:type="PrimaryCommandSurface">
+      <OfficeTab id="TabHome">
+       <Group id="Contreras.Solicitudes.Group">
+        <Label resid="Contreras.Group.Label"/>
+        <Icon>
+         <bt:Image size="16" resid="Contreras.Icon.16"/>
+         <bt:Image size="32" resid="Contreras.Icon.32"/>
+         <bt:Image size="80" resid="Contreras.Icon.80"/>
+        </Icon>
+        <Control xsi:type="Button" id="Contreras.Formulario.Button">
+         <Label resid="Contreras.Button.Label"/>
+         <Supertip><Title resid="Contreras.Button.Label"/><Description resid="Contreras.Button.Tip"/></Supertip>
+         <Icon>
+          <bt:Image size="16" resid="Contreras.Icon.16"/>
+          <bt:Image size="32" resid="Contreras.Icon.32"/>
+          <bt:Image size="80" resid="Contreras.Icon.80"/>
+         </Icon>
+         <Action xsi:type="ShowTaskpane">
+          <TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId>
+          <SourceLocation resid="Contreras.Taskpane.Url"/>
+         </Action>
+        </Control>
+       </Group>
+      </OfficeTab>
+     </ExtensionPoint>
+    </DesktopFormFactor>
+   </Host>
+  </Hosts>
+  <Resources>
+   <bt:Images>
+    <bt:Image id="Contreras.Icon.16" DefaultValue="https://agustinr1481.github.io/formulario-contreras/icon16.png"/>
+    <bt:Image id="Contreras.Icon.32" DefaultValue="https://agustinr1481.github.io/formulario-contreras/icon32.png"/>
+    <bt:Image id="Contreras.Icon.80" DefaultValue="https://agustinr1481.github.io/formulario-contreras/icon80.png"/>
+   </bt:Images>
+   <bt:Urls><bt:Url id="Contreras.Taskpane.Url" DefaultValue="https://agustinr1481.github.io/formulario-contreras/taskpane.html"/></bt:Urls>
+   <bt:ShortStrings>
+    <bt:String id="Contreras.Group.Label" DefaultValue="Contreras"/>
+    <bt:String id="Contreras.Button.Label" DefaultValue="Formulario Contreras"/>
+   </bt:ShortStrings>
+   <bt:LongStrings><bt:String id="Contreras.Button.Tip" DefaultValue="Abra el panel para cargar o actualizar solicitudes registrando su usuario Microsoft."/></bt:LongStrings>
+  </Resources>
+ </VersionOverrides>
+</OfficeApp>

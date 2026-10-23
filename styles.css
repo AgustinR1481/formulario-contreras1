@@ -1,0 +1,14 @@
+body { margin: 0; background: #fff; color: #242424; font: 14px "Segoe UI", Arial, sans-serif; }
+#ec49 { padding: 16px; max-width: 620px; }
+h2 { margin: 0 0 10px; color: #922d3d; font-size: 21px; }
+h3 { margin: 0 0 8px; font-size: 16px; }
+p { line-height: 1.5; }
+.intro { color: #555; }
+.identity { background: #f5f1ed; padding: 10px; overflow-wrap: anywhere; }
+button { display: block; width: 100%; margin: 8px 0; padding: 11px 12px; border: 1px solid #922d3d; border-radius: 4px; background: #922d3d; color: #fff; font: 600 14px "Segoe UI", sans-serif; cursor: pointer; }
+button.secondary { background: white; color: #922d3d; }
+button:disabled { opacity: .55; cursor: wait; }
+.message { margin-top: 14px; padding: 12px; background: #fff2cc; border-left: 4px solid #9b7410; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.45; }
+.message.success { background: #e2f0d9; border-color: #375623; }
+.question { border: 1px solid #c9c1c2; padding: 12px; margin-top: 16px; }
+[hidden] { display: none !important; }
