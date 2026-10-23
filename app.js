@@ -1,8 +1,8 @@
-/* Entrega 50. Complemento Formulario Contreras para Excel (Office.js).
+/* Entrega 52. Complemento Formulario Contreras para Excel (Office.js).
    Basado en el script 41 suministrado por Agus. NO pegar en Automatizar.
    La identidad se consulta en cada operación y nunca se lee de una celda.
 */
-const ec49 = { busy: false, pending: null, saved: null };
+const ec49 = { busy: false, pending: null, saved: null, searchPending: null };
 const formProtection49 = {
   allowFormatRows: true, allowFormatColumns: true,
   allowFormatCells: true, allowEditObjects: true
@@ -10,7 +10,7 @@ const formProtection49 = {
 
 Office.onReady(() => {
   const button = document.getElementById("ec49-save");
-  if (!button) { console.log("Entrega 50: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
+  if (!button) { console.log("Entrega 52: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
   button.addEventListener("click", () => task49(start49));
   document.getElementById("ec49-confirm").addEventListener("click", () => task49(confirm49));
   document.getElementById("ec49-cancel").addEventListener("click", () => {
@@ -22,13 +22,19 @@ Office.onReady(() => {
     ec49.saved = null; section49("ec49-clean-box", false);
     message49("Se conservaron los datos del formulario. La solicitud ya está guardada.", true);
   });
+  document.getElementById("ec52-search").addEventListener("click", () => task49(() => search52(false)));
+  document.getElementById("ec52-search-confirm").addEventListener("click", () => task49(() => search52(true)));
+  document.getElementById("ec52-search-cancel").addEventListener("click", () => {
+    ec49.searchPending = null; section49("ec52-search-confirm-box", false);
+    message49("Búsqueda cancelada. Se conservaron los datos del formulario.");
+  });
   message49("Listo. Complete el formulario de Excel y pulse Cargar / Actualizar aquí.");
 });
 function section49(id, show) { document.getElementById(id).hidden = !show; }
 function message49(text, ok = false) {
   const box = document.getElementById("ec49-message");
   box.textContent = text; box.className = ok ? "message success" : "message";
-  console.log("ENTREGA 50: " + text);
+  console.log("ENTREGA 52: " + text);
 }
 async function task49(action) {
   if (ec49.busy) return;
@@ -36,7 +42,8 @@ async function task49(action) {
   document.querySelectorAll("#ec49 button").forEach(button => button.disabled = true);
   try { await action(); }
   catch (error) {
-    ec49.pending = null; section49("ec49-confirm-box", false);
+    ec49.pending = null; ec49.searchPending = null;
+    section49("ec49-confirm-box", false); section49("ec52-search-confirm-box", false);
     message49(String(error && error.message ? error.message : error));
     console.log(error);
   } finally {
@@ -111,7 +118,7 @@ function formats49(rows, columns, format = "@") { return Array.from({ length: ro
 function now49() { return new Date(Date.now() - 10800000).toISOString().slice(0, 19).replace("T", " ") + " UTC-03:00"; }
 
 // Se cargan bloques completos en pocas sincronizaciones, no una lectura por celda.
-async function read49(context) {
+async function read49(context, searchOnly = false) {
   const sheets = context.workbook.worksheets;
   const form = sheets.getItemOrNullObject("EC_Formulario");
   const meta = sheets.getItemOrNullObject("EC_Campos");
@@ -122,6 +129,7 @@ async function read49(context) {
   if ([form, meta, base, audit].some(sheet => sheet.isNullObject)) throw new Error("Faltan hojas de la instalación.");
   const map = meta.getUsedRangeOrNullObject(true); map.load("values");
   const settings = meta.getRange("P2:Q2"); settings.load("values");
+  const baseline = meta.getRange("J2"); baseline.load("values");
   const baseUsed = base.getUsedRangeOrNullObject(true); baseUsed.load("rowIndex,rowCount");
   const auditUsed = audit.getUsedRangeOrNullObject(true); auditUsed.load("rowIndex,rowCount");
   const auditHeads = audit.getRange("A1:E1"); auditHeads.load("text");
@@ -131,7 +139,7 @@ async function read49(context) {
   const fields = map.values.slice(1).filter(row => String(row[0]).trim() !== "").map(row => row.slice(0, 8));
   const start = Number(settings.values[0][0]) || 4;
   if (!fields.length || ![4, 6].includes(start)) throw new Error("Revise el mapa de campos y el inicio de Base.");
-  if (meta.protection.protected || base.protection.protected || audit.protection.protected) throw new Error("Desproteja EC_Campos, Base y Auditoría antes de guardar, como en el botón actual.");
+  if (meta.protection.protected || (!searchOnly && (base.protection.protected || audit.protection.protected))) throw new Error("Desproteja EC_Campos, Base y Auditoría antes de guardar, como en el botón actual.");
   const formRows = fields.filter(f => !replica49(f)).map(f => Number(f[4]));
   if (formRows.some(r => !Number.isInteger(r) || r < 7 || r > 10000)) throw new Error("El mapa contiene una fila de formulario inválida.");
   const maxFormRow = Math.max(...formRows);
@@ -141,12 +149,12 @@ async function read49(context) {
   if ((end - start + 1) * fields.length > 500000) throw new Error("El rango usado de Base es demasiado grande para esta prueba. Revise las filas con contenido.");
   let baseData = null;
   if (end >= start) { baseData = base.getRangeByIndexes(start - 1, 0, end - start + 1, fields.length); baseData.load("values"); }
-  const names = Array.from(new Set(fields.map(f => String(f[5] || "").trim()).filter(v => v !== "")));
+  const names = searchOnly ? [] : Array.from(new Set(fields.map(f => String(f[5] || "").trim()).filter(v => v !== "")));
   const named = names.map(name => { const item = context.workbook.names.getItemOrNullObject(name); item.load("type"); return { name, item }; });
   await context.sync();
   if (headings.text[0].some((v, i) => v !== String(fields[i][3]))) throw new Error("Base no coincide con EC_Campos. No se guardó nada.");
   const expected = ["Fecha/Hora Carga", "Usuario Carga", "Área Solicitante", "Motivo de Solicitud", "Detalle de campos cargados o modificados"];
-  if (auditHeads.text[0].some((v, i) => v !== expected[i])) throw new Error("Auditoría tiene otra estructura.");
+  if (!searchOnly && auditHeads.text[0].some((v, i) => v !== expected[i])) throw new Error("Auditoría tiene otra estructura.");
   const catalogRanges = named.map(entry => {
     if (entry.item.isNullObject || String(entry.item.type).toLowerCase() !== "range") throw new Error("No se encontró el catálogo " + entry.name + ".");
     const range = entry.item.getRange(); range.load("text"); return { name: entry.name, range };
@@ -158,7 +166,7 @@ async function read49(context) {
   const raw = replicate49(fields, fields.map(f => replica49(f) ? "" : text49(formData.values[Number(f[4]) - 1][0], String(f[3]))));
   const rows = rawBase.map(row => replicate49(fields, row.map((v, i) => text49(v, String(fields[i][3])))));
   return {
-    fields, start, end, rawBase, rows, raw, catalogs,
+    fields, start, end, rawBase, rows, raw, catalogs, baseline: String(baseline.values[0][0]),
     auditNext: Math.max(1, auditUsed.isNullObject ? 1 : auditUsed.rowIndex + auditUsed.rowCount),
     formProtected: form.protection.protected,
     fixedG: Number(settings.values[0][1]),
@@ -205,6 +213,7 @@ function signature49(s) {
   return JSON.stringify([s.baseId, s.metaId, s.formId, s.auditId, s.fields, s.start, s.end, s.rawBase, raw, s.catalogs]);
 }
 async function start49() {
+  ec49.searchPending = null; section49("ec52-search-confirm-box", false);
   ec49.pending = null; ec49.saved = null;
   section49("ec49-confirm-box", false); section49("ec49-clean-box", false);
   message49("Consultando usuario y validando el formulario…");
@@ -366,7 +375,7 @@ async function withForm49(context, action) {
   try { await action(form); }
   finally { if (wasProtected) { form.protection.protect(formProtection49); await context.sync(); } }
 }
-async function fillForm49(context, s, values, plan) {
+async function fillForm49(context, s, values, plan, notice = "") {
   await withForm49(context, async form => {
     for (let i = 0; i < s.fields.length; i++) {
       const f = s.fields[i]; if (replica49(f)) continue;
@@ -386,7 +395,7 @@ async function fillForm49(context, s, values, plan) {
     meta.getRange("J2").values = [[JSON.stringify(plan.candidate.map((v, i) => plan.autos.includes(i) ? "" : v))]];
     // Se conserva la zona de aviso usada por los botones existentes.
     const box = form.getRange("B5:C6"); box.unmerge(); box.merge(false);
-    form.getRange("B5").values = [["Solicitud " + (plan.exists ? "actualizada" : "cargada") + " en Base, fila " + plan.row + ". Usuario Microsoft: " + values[fieldIndex49(s, "ID Solicitante")] + "."]];
+    form.getRange("B5").values = [[notice || "Solicitud " + (plan.exists ? "actualizada" : "cargada") + " en Base, fila " + plan.row + ". Usuario Microsoft: " + values[fieldIndex49(s, "ID Solicitante")] + "."]];
     box.format.wrapText = true; box.format.font.size = 12; box.format.font.bold = true;
     box.format.font.color = "#375623"; box.format.fill.color = "#E2F0D9";
     form.getRange("5:5").format.rowHeight = 75;
@@ -413,4 +422,62 @@ async function clean49() {
   });
   ec49.saved = null; section49("ec49-clean-box", false);
   message49("Formulario listo para otra persona. Se conservaron Motivo, Fecha de solicitud, Área solicitante e ID Solicitante.", true);
+}
+
+
+// Entrega 52: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
+function searchSignature52(s) {
+  return JSON.stringify([s.baseId, s.formId, s.metaId, s.fields, s.start, s.rawBase, s.raw, s.baseline]);
+}
+function searchPlan52(s, cuil) {
+  const ci = fieldIndex49(s, "CUIL");
+  const matches = s.rows.map((r, i) => r[ci] === cuil ? i : -1).filter(i => i >= 0);
+  if (!matches.length) throw new Error(s.rows.length
+    ? "No se encontró una solicitud para el CUIL " + cuil + " en esta entrega. Verifique el número o cargue una nueva solicitud."
+    : "Esta entrega todavía no tiene registros cargados.");
+  if (matches.length > 1) throw new Error("Hay más de una solicitud para ese CUIL. Revise Base; no se seleccionó ningún registro.");
+  const current = s.raw.map((v, i) => ["Usuario Carga", "Fecha/Hora Carga"].includes(String(s.fields[i][3])) ? "" : v);
+  const hasData = s.fields.some((f, i) => (String(f[1]) !== "Solicitud" || String(f[3]) === "Notas") && current[i] !== "");
+  const record = s.rows[matches[0]].slice();
+  const autos = s.fields.map((f, i) => ["Usuario Carga", "Fecha/Hora Carga"].includes(String(f[3])) ? i : -1).filter(i => i >= 0);
+  return { record, row: s.start + matches[0], motive: record[fieldIndex49(s, "Motivo de la solicitud")],
+    candidate: record, autos, exists: true, unsaved: hasData && JSON.stringify(current) !== s.baseline };
+}
+async function search52(confirmDiscard = false) {
+  const pending = ec49.searchPending;
+  const cuil = String(document.getElementById("ec52-cuil").value || "").trim();
+  if (!/^\d{11}$/.test(cuil)) throw new Error("Ingrese un CUIL de 11 dígitos, sin guiones ni espacios, en el panel.");
+  if (!confirmDiscard) {
+    ec49.searchPending = null;
+    ec49.pending = null; ec49.saved = null;
+    section49("ec52-search-confirm-box", false);
+    section49("ec49-confirm-box", false); section49("ec49-clean-box", false);
+  }
+  message49("Buscando el CUIL en Base…");
+  const identity = await identity49();
+  await Excel.run(async context => {
+    const s = await read49(context, true);
+    const plan = searchPlan52(s, cuil);
+    if (confirmDiscard) {
+      if (!pending || pending.cuil !== cuil || Date.now() - pending.created > 900000)
+        throw new Error("La confirmación venció o cambió el CUIL. Pulse Buscar CUIL nuevamente.");
+      if (identity.user !== pending.identity.user || identity.objectId !== pending.identity.objectId || identity.tenantId !== pending.identity.tenantId)
+        throw new Error("Cambió la cuenta Microsoft. Pulse Buscar CUIL nuevamente.");
+      if (searchSignature52(s) !== pending.signature)
+        throw new Error("Cambió el formulario, el mapa o Base desde el aviso. No se reemplazaron los datos. Pulse Buscar CUIL nuevamente.");
+    } else if (plan.unsaved) {
+      ec49.searchPending = { cuil, identity, created: Date.now(), signature: searchSignature52(s) };
+      document.getElementById("ec52-search-confirm-text").textContent = "Hay cambios sin guardar. ¿Desea descartarlos y traer la solicitud del CUIL " + cuil + " desde Base?";
+      section49("ec52-search-confirm-box", true);
+      message49("Se encontró la solicitud. Confirme si desea reemplazar los cambios sin guardar del formulario.");
+      return;
+    }
+    const message = "Solicitud recuperada de Base, fila " + plan.row + ". Revise o modifique los datos y pulse Cargar / Actualizar para guardar. Base y Auditoría se conservaron.";
+    await fillForm49(context, s, plan.record, plan, message);
+    context.workbook.worksheets.getItem("EC_Formulario").activate();
+    await context.sync();
+    ec49.searchPending = null;
+    section49("ec52-search-confirm-box", false);
+    message49(message, true);
+  });
 }

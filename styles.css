@@ -12,3 +12,8 @@ button:disabled { opacity: .55; cursor: wait; }
 .message.success { background: #e2f0d9; border-color: #375623; }
 .question { border: 1px solid #c9c1c2; padding: 12px; margin-top: 16px; }
 [hidden] { display: none !important; }
+
+.version { color: #666; font-size: 12px; }
+.search { margin-top: 18px; border-top: 1px solid #ddd; padding-top: 16px; }
+.search label { display: block; font-weight: 600; margin-bottom: 6px; }
+.search input { box-sizing: border-box; width: 100%; padding: 10px; border: 1px solid #888; border-radius: 4px; font: inherit; }
