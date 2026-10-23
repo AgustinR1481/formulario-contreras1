@@ -17,3 +17,5 @@ button:disabled { opacity: .55; cursor: wait; }
 .search { margin-top: 18px; border-top: 1px solid #ddd; padding-top: 16px; }
 .search label { display: block; font-weight: 600; margin-bottom: 6px; }
 .search input { box-sizing: border-box; width: 100%; padding: 10px; border: 1px solid #888; border-radius: 4px; font: inherit; }
+
+button.danger { background: #a4262c; border-color: #a4262c; color: #fff; }

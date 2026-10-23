@@ -1,8 +1,8 @@
-/* Entrega 52. Complemento Formulario Contreras para Excel (Office.js).
+/* Entrega 53. Complemento Formulario Contreras para Excel (Office.js).
    Basado en el script 41 suministrado por Agus. NO pegar en Automatizar.
    La identidad se consulta en cada operación y nunca se lee de una celda.
 */
-const ec49 = { busy: false, pending: null, saved: null, searchPending: null };
+const ec49 = { busy: false, pending: null, saved: null, searchPending: null, deletePending: null };
 const formProtection49 = {
   allowFormatRows: true, allowFormatColumns: true,
   allowFormatCells: true, allowEditObjects: true
@@ -10,7 +10,7 @@ const formProtection49 = {
 
 Office.onReady(() => {
   const button = document.getElementById("ec49-save");
-  if (!button) { console.log("Entrega 52: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
+  if (!button) { console.log("Entrega 53: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
   button.addEventListener("click", () => task49(start49));
   document.getElementById("ec49-confirm").addEventListener("click", () => task49(confirm49));
   document.getElementById("ec49-cancel").addEventListener("click", () => {
@@ -28,13 +28,18 @@ Office.onReady(() => {
     ec49.searchPending = null; section49("ec52-search-confirm-box", false);
     message49("Búsqueda cancelada. Se conservaron los datos del formulario.");
   });
+  document.getElementById("ec53-delete").addEventListener("click", () => task49(() => delete53(false)));
+  document.getElementById("ec53-delete-confirm").addEventListener("click", () => task49(() => delete53(true)));
+  document.getElementById("ec53-delete-cancel").addEventListener("click", () => {
+    cancelDelete53(); message49("Eliminación cancelada. Base, Auditoría y el formulario se conservaron.");
+  });
   message49("Listo. Complete el formulario de Excel y pulse Cargar / Actualizar aquí.");
 });
 function section49(id, show) { document.getElementById(id).hidden = !show; }
 function message49(text, ok = false) {
   const box = document.getElementById("ec49-message");
   box.textContent = text; box.className = ok ? "message success" : "message";
-  console.log("ENTREGA 52: " + text);
+  console.log("ENTREGA 53: " + text);
 }
 async function task49(action) {
   if (ec49.busy) return;
@@ -42,6 +47,7 @@ async function task49(action) {
   document.querySelectorAll("#ec49 button").forEach(button => button.disabled = true);
   try { await action(); }
   catch (error) {
+    cancelDelete53();
     ec49.pending = null; ec49.searchPending = null;
     section49("ec49-confirm-box", false); section49("ec52-search-confirm-box", false);
     message49(String(error && error.message ? error.message : error));
@@ -130,6 +136,7 @@ async function read49(context, searchOnly = false) {
   const map = meta.getUsedRangeOrNullObject(true); map.load("values");
   const settings = meta.getRange("P2:Q2"); settings.load("values");
   const baseline = meta.getRange("J2"); baseline.load("values");
+  const selected = meta.getRange("K2:L2"); selected.load("values");
   const baseUsed = base.getUsedRangeOrNullObject(true); baseUsed.load("rowIndex,rowCount");
   const auditUsed = audit.getUsedRangeOrNullObject(true); auditUsed.load("rowIndex,rowCount");
   const auditHeads = audit.getRange("A1:E1"); auditHeads.load("text");
@@ -168,7 +175,7 @@ async function read49(context, searchOnly = false) {
   return {
     fields, start, end, rawBase, rows, raw, catalogs, baseline: String(baseline.values[0][0]),
     auditNext: Math.max(1, auditUsed.isNullObject ? 1 : auditUsed.rowIndex + auditUsed.rowCount),
-    formProtected: form.protection.protected,
+    formProtected: form.protection.protected, selectedRow: Number(selected.values[0][0]), selectedRecord: String(selected.values[0][1]),
     fixedG: Number(settings.values[0][1]),
     baseId: base.id, metaId: meta.id, formId: form.id, auditId: audit.id
   };
@@ -213,6 +220,7 @@ function signature49(s) {
   return JSON.stringify([s.baseId, s.metaId, s.formId, s.auditId, s.fields, s.start, s.end, s.rawBase, raw, s.catalogs]);
 }
 async function start49() {
+  cancelDelete53();
   ec49.searchPending = null; section49("ec52-search-confirm-box", false);
   ec49.pending = null; ec49.saved = null;
   section49("ec49-confirm-box", false); section49("ec49-clean-box", false);
@@ -404,6 +412,7 @@ async function fillForm49(context, s, values, plan, notice = "") {
   });
 }
 async function clean49() {
+  cancelDelete53();
   const saved = ec49.saved;
   if (!saved) throw new Error("No hay una carga recién guardada para limpiar.");
   const identity = await identity49();
@@ -425,7 +434,7 @@ async function clean49() {
 }
 
 
-// Entrega 52: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
+// Entrega 53: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
 function searchSignature52(s) {
   return JSON.stringify([s.baseId, s.formId, s.metaId, s.fields, s.start, s.rawBase, s.raw, s.baseline]);
 }
@@ -448,6 +457,7 @@ async function search52(confirmDiscard = false) {
   const cuil = String(document.getElementById("ec52-cuil").value || "").trim();
   if (!/^\d{11}$/.test(cuil)) throw new Error("Ingrese un CUIL de 11 dígitos, sin guiones ni espacios, en el panel.");
   if (!confirmDiscard) {
+    cancelDelete53();
     ec49.searchPending = null;
     ec49.pending = null; ec49.saved = null;
     section49("ec52-search-confirm-box", false);
@@ -480,4 +490,136 @@ async function search52(confirmDiscard = false) {
     section49("ec52-search-confirm-box", false);
     message49(message, true);
   });
+}
+
+
+// Entrega 53: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
+function cancelDelete53() {
+  ec49.deletePending = null; section49("ec53-delete-confirm-box", false);
+}
+function deleteSignature53(s) {
+  return JSON.stringify([searchSignature52(s), s.auditId, s.auditNext, s.selectedRow, s.selectedRecord]);
+}
+function deletePlan53(s) {
+  const ci = fieldIndex49(s, "CUIL");
+  const cuil = s.raw[ci];
+  if (!/^\d{11}$/.test(cuil)) throw new Error("No se eliminó nada. Busque un CUIL de 11 dígitos para recuperar la solicitud que desea eliminar.");
+  const matches = s.rows.map((r, i) => r[ci] === cuil ? i : -1).filter(i => i >= 0);
+  if (matches.length !== 1) throw new Error(matches.length > 1
+    ? "No se eliminó nada: hay varios registros para ese CUIL. Revise Base."
+    : "No se encontró el CUIL " + cuil + " en esta entrega. No se eliminó ningún registro.");
+  const index = matches[0], row = s.start + index, before = s.rows[index];
+  if (s.selectedRow !== row || s.selectedRecord !== JSON.stringify(before))
+    throw new Error("No se eliminó nada. Utilice Buscar CUIL para recuperar el registro que desea eliminar. Si cambió el CUIL o Base fue modificada después de buscar, búsquelo nuevamente.");
+  const part = label => { const i = s.fields.findIndex(f => String(f[3]).trim() === label); return i < 0 ? "" : before[i]; };
+  const detail = "ELIMINAR SOLICITUD | CUIL " + cuil + " | " + s.fields.map((f, i) => before[i] !== ""
+    ? f[1] + " / " + f[3] + " [" + f[0] + "]: " + before[i] + " → (eliminado)" : "").filter(v => v !== "").join("; ");
+  return { cuil, index, row, before, person: (part("Nombre") + " " + part("Apellidos")).trim(),
+    area: part("Área solicitante"), motive: part("Motivo de la solicitud"), detail };
+}
+async function checkDeleteAccess53(context) {
+  const sheets = context.workbook.worksheets;
+  const meta = sheets.getItem("EC_Campos"), base = sheets.getItem("EC_Base"), audit = sheets.getItem("EC_Auditoria");
+  for (const sheet of [meta, base, audit]) sheet.protection.load("protected");
+  const heads = audit.getRange("A1:E1"); heads.load("text");
+  await context.sync();
+  if ([meta, base, audit].some(sheet => sheet.protection.protected))
+    throw new Error("No se eliminó nada: desproteja Base, Auditoría y EC_Campos antes de continuar.");
+  const expected = ["Fecha/Hora Carga", "Usuario Carga", "Área Solicitante", "Motivo de Solicitud", "Detalle de campos cargados o modificados"];
+  if (heads.text[0].some((v, i) => v !== expected[i])) throw new Error("No se eliminó nada: Auditoría tiene una estructura diferente.");
+}
+async function delete53(confirm = false) {
+  const pending = ec49.deletePending;
+  if (!confirm) {
+    cancelDelete53(); ec49.pending = null; ec49.searchPending = null; ec49.saved = null;
+    section49("ec49-confirm-box", false); section49("ec52-search-confirm-box", false); section49("ec49-clean-box", false);
+  }
+  const identity = await identity49();
+  message49(confirm ? "Verificando y eliminando la solicitud…" : "Revisando la solicitud seleccionada…");
+  const outcome = await Excel.run(async context => {
+    const s = await read49(context, true);
+    const plan = deletePlan53(s);
+    await checkDeleteAccess53(context);
+    const detail = plan.detail + " | Cuenta Microsoft " + identity.objectId;
+    if (detail.length > 32000) throw new Error("No se eliminó nada: el registro es demasiado extenso para guardar su detalle completo en Auditoría.");
+    if (!confirm) {
+      ec49.deletePending = { identity, signature: deleteSignature53(s), created: Date.now() };
+      document.getElementById("ec53-delete-confirm-text").textContent = "¿Desea eliminar la solicitud del CUIL " + plan.cuil + " · " + plan.person + "? Se quitará de esta entrega y su contenido quedará registrado en Auditoría con su usuario Microsoft. Después se limpiará el formulario conservando Motivo, Fecha de solicitud, Área e ID Solicitante. Los cambios sin guardar del formulario también se descartarán.";
+      section49("ec53-delete-confirm-box", true);
+      message49("No se eliminó nada todavía. Revise el CUIL y confirme o cancele.");
+      return null;
+    }
+    if (!pending || Date.now() - pending.created > 900000) throw new Error("La confirmación venció. Pulse Eliminar solicitud nuevamente.");
+    if (identity.user !== pending.identity.user || identity.objectId !== pending.identity.objectId || identity.tenantId !== pending.identity.tenantId)
+      throw new Error("Cambió la cuenta Microsoft. No se eliminó nada; vuelva a iniciar la operación.");
+    if (deleteSignature53(s) !== pending.signature)
+      throw new Error("Cambió el formulario, Base, la selección o Auditoría desde el aviso. No se eliminó nada. Busque la solicitud y revise nuevamente.");
+    const base = context.workbook.worksheets.getItem("EC_Base"), audit = context.workbook.worksheets.getItem("EC_Auditoria");
+    const tail = s.rawBase.slice(plan.index).map(r => r.slice());
+    const remaining = tail.slice(1); remaining.push(s.fields.map(() => ""));
+    const target = base.getRangeByIndexes(plan.row - 1, 0, tail.length, s.fields.length);
+    const auditTarget = audit.getRangeByIndexes(s.auditNext, 0, 1, 5);
+    target.load("values"); auditTarget.load("values");
+    await context.sync();
+    const auditBefore = auditTarget.values.map(r => r.slice());
+    if (JSON.stringify(target.values) !== JSON.stringify(tail) || auditBefore[0].some(v => String(v).trim() !== ""))
+      throw new Error("Base o Auditoría cambiaron durante la revisión. No se eliminó nada; vuelva a buscar la solicitud.");
+    const stamp = now49(), auditValues = [[stamp, identity.user, plan.area, plan.motive, detail]];
+    try {
+      auditTarget.numberFormat = formats49(1, 5);
+      auditTarget.values = auditValues.map(r => r.map(v => literal49(v)));
+      target.values = remaining.map(r => r.map(v => literal49(v)));
+      await context.sync();
+      target.load("values"); auditTarget.load("values"); await context.sync();
+      if (JSON.stringify(target.values) !== JSON.stringify(remaining) || JSON.stringify(auditTarget.values) !== JSON.stringify(auditValues))
+        throw new Error("No se pudo verificar la eliminación y su entrada de Auditoría.");
+    } catch (error) {
+      try {
+        target.load("values"); auditTarget.load("values"); await context.sync();
+        const ownBase = JSON.stringify(target.values) === JSON.stringify(remaining);
+        const oldBase = JSON.stringify(target.values) === JSON.stringify(tail);
+        const ownAudit = JSON.stringify(auditTarget.values) === JSON.stringify(auditValues);
+        const oldAudit = JSON.stringify(auditTarget.values) === JSON.stringify(auditBefore);
+        if ((!ownBase && !oldBase) || (!ownAudit && !oldAudit)) throw new Error("Se detectaron cambios ajenos y no se restauró automáticamente.");
+        if (ownBase) target.values = tail.map(r => r.map(v => literal49(v)));
+        if (ownAudit) auditTarget.values = auditBefore.map(r => r.map(v => literal49(v)));
+        await context.sync();
+      } catch (rollback) {
+        throw new Error("No se pudo confirmar ni restaurar la eliminación con seguridad. Revise Base y Auditoría antes de repetir. " + String(rollback));
+      }
+      throw new Error("No se completó la eliminación; se restauraron los valores anteriores. " + String(error));
+    }
+    // Borrado y auditoría verificados: un fallo posterior no debe repetir la eliminación.
+    let warning = "";
+    try {
+      const latest = await read49(context, true);
+      const meta = context.workbook.worksheets.getItem("EC_Campos");
+      meta.getRange("J2:L2").clear("Contents"); await context.sync();
+      if (JSON.stringify(latest.fields) !== JSON.stringify(s.fields) || JSON.stringify(latest.raw) !== JSON.stringify(s.raw))
+        throw new Error("El formulario cambió durante la operación; se conservaron esos datos.");
+      await withForm49(context, async form => {
+        const keep = ["Motivo de la solicitud", "Fecha de solicitud", "Área solicitante", "ID Solicitante"];
+        for (const f of s.fields) if (!replica49(f) && !keep.includes(String(f[3]))) form.getRange("C" + String(f[4])).clear("Contents");
+        form.getRange("B5").values = [["Solicitud del CUIL " + plan.cuil + " eliminada. Usuario Microsoft: " + identity.user + ". Formulario listo para una nueva carga."]];
+        const box = form.getRange("B5:C6"); box.format.font.color = "#375623"; box.format.fill.color = "#E2F0D9";
+        const oldPending = context.workbook.worksheets.getItemOrNullObject("EC_Confirmacion");
+        oldPending.load("name"); await context.sync();
+        if (!oldPending.isNullObject) {
+          oldPending.protection.load("protected"); await context.sync();
+          if (!oldPending.protection.protected) {
+            const used = oldPending.getUsedRangeOrNullObject(true); used.load("address"); await context.sync();
+            if (!used.isNullObject) used.clear("Contents");
+          }
+        }
+        await context.sync();
+      });
+    } catch (error) {
+      warning = " La solicitud YA FUE ELIMINADA y registrada en Auditoría; no se pudo completar la limpieza del formulario. No repita la eliminación. " + String(error && error.message ? error.message : error);
+    }
+    return { cuil: plan.cuil, warning };
+  });
+  if (!outcome) return;
+  cancelDelete53(); ec49.pending = null; ec49.searchPending = null; ec49.saved = null;
+  section49("ec49-confirm-box", false); section49("ec52-search-confirm-box", false); section49("ec49-clean-box", false);
+  message49("Solicitud del CUIL " + outcome.cuil + " eliminada de esta entrega. Auditoría registró el contenido eliminado y el usuario " + identity.user + "." + (outcome.warning || " Formulario listo para una nueva carga."), true);
 }

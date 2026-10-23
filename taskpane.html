@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Formulario Contreras</title>
-  <link rel="stylesheet" href="styles.css?v=52">
+  <link rel="stylesheet" href="styles.css?v=53">
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-  <script defer src="app.js?v=52"></script>
+  <script defer src="app.js?v=53"></script>
 </head>
 <body>
 <main id="ec49">
   <h2>Formulario Contreras</h2>
-  <p class="version">Entrega 52 · Cargar / Actualizar y Buscar CUIL</p>
+  <p class="version">Entrega 53 · Cargar / Actualizar, Buscar y Eliminar</p>
   <p class="intro">Complete el formulario de Excel. Al guardar se registrará su usuario de Microsoft.</p>
   <p class="identity">Usuario: <strong id="ec49-user">se consulta al ejecutar</strong></p>
   <button id="ec49-save" type="button">Cargar / Actualizar solicitud</button>
@@ -26,6 +26,16 @@
     <p id="ec52-search-confirm-text"></p>
     <button id="ec52-search-confirm" type="button">Sí, descartar cambios y buscar</button>
     <button id="ec52-search-cancel" class="secondary" type="button">Cancelar y conservar formulario</button>
+  </section>
+  <section class="search">
+    <p class="intro">Para eliminar, primero recupere la solicitud con Buscar CUIL. Se toma el CUIL del formulario de Excel.</p>
+    <button id="ec53-delete" class="danger" type="button">Eliminar solicitud seleccionada</button>
+  </section>
+  <section id="ec53-delete-confirm-box" class="question" hidden>
+    <h3>Confirmar eliminación</h3>
+    <p id="ec53-delete-confirm-text"></p>
+    <button id="ec53-delete-confirm" class="danger" type="button">Sí, eliminar esta solicitud</button>
+    <button id="ec53-delete-cancel" class="secondary" type="button">Cancelar y conservar solicitud</button>
   </section>
   <div id="ec49-message" class="message" role="status" aria-live="polite">Iniciando…</div>
   <section id="ec49-confirm-box" class="question" hidden>
