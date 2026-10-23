@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Formulario Contreras</title>
-  <link rel="stylesheet" href="styles.css?v=55">
+  <link rel="stylesheet" href="styles.css?v=56">
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-  <script defer src="app.js?v=55"></script>
+  <script defer src="app.js?v=56"></script>
 </head>
 <body>
 <main id="ec49">
   <h2>Formulario Contreras</h2>
-  <p class="version">Entrega 55 · Formulario y Base e informes</p>
+  <p class="version">Entrega 56 · Formulario y Base e informes</p>
   <p class="intro">Complete el formulario de Excel. Al guardar se registrará su usuario de Microsoft.</p>
   <p class="identity">Usuario: <strong id="ec49-user">se consulta al ejecutar</strong></p>
   <div class="tabs" role="tablist" aria-label="Secciones del complemento">
@@ -66,7 +66,14 @@
     <h3 class="base-title">Base e informes</h3>
     <p class="intro">Base muestra los campos con contenido en al menos uno de los registros de la entrega. Puede mostrar el esquema completo con el siguiente botón.</p>
     <button id="ec55-show-all" class="base-action" type="button">Mostrar todos los campos</button>
-    <p class="base-note">Limpiar Base y los PDF horizontal y vertical se incorporarán en las próximas entregas. Por ahora, utilice sus botones actuales de Excel.</p>
+    <button id="ec56-clear-base" class="base-action" type="button">Limpiar Base / Eliminar entrega</button>
+    <section id="ec56-clear-confirm-box" class="question" hidden>
+      <h3>Confirmar limpieza de Base</h3>
+      <p id="ec56-clear-confirm-text"></p>
+      <button id="ec56-clear-confirm" type="button">Sí, eliminar todos los registros de esta entrega</button>
+      <button id="ec56-clear-cancel" type="button">Cancelar y conservar Base</button>
+    </section>
+    <p class="base-note">Los PDF horizontal y vertical se incorporarán en las próximas entregas. Por ahora, utilice sus botones actuales de Excel para generar los informes.</p>
   </div>
   <div id="ec49-message" class="message" role="status" aria-live="polite">Iniciando…</div>
 </main>
