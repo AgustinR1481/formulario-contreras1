@@ -1,4 +1,4 @@
-/* Entrega 59. Complemento Formulario Contreras para Excel (Office.js).
+/* Entrega 60. Complemento Formulario Contreras para Excel (Office.js).
    Basado en el script 41 suministrado por Agus. NO pegar en Automatizar.
    La identidad se consulta en cada operación y nunca se lee de una celda.
 */
@@ -10,7 +10,7 @@ const formProtection49 = {
 
 Office.onReady(() => {
   const button = document.getElementById("ec49-save");
-  if (!button) { console.log("Entrega 59: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
+  if (!button) { console.log("Entrega 60: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
   button.addEventListener("click", () => task49(start49));
   document.getElementById("ec49-confirm").addEventListener("click", () => task49(confirm49));
   document.getElementById("ec49-cancel").addEventListener("click", () => {
@@ -56,6 +56,7 @@ Office.onReady(() => {
   });
   document.getElementById("ec58-pdf-horizontal").addEventListener("click", () => task49(pdfHorizontal58));
   document.getElementById("ec59-pdf-vertical").addEventListener("click", () => task49(pdfVertical59));
+  document.getElementById("ec60-instructions").addEventListener("click", () => task49(updateInstructions60));
   selectTab55("form");
   message49("Listo. Complete el formulario de Excel y pulse Cargar / Actualizar aquí.");
 });
@@ -63,7 +64,7 @@ function section49(id, show) { document.getElementById(id).hidden = !show; }
 function message49(text, ok = false) {
   const box = document.getElementById("ec49-message");
   box.textContent = text; box.className = ok ? "message success" : "message";
-  console.log("ENTREGA 59: " + text);
+  console.log("ENTREGA 60: " + text);
 }
 async function task49(action) {
   if (ec49.busy) return;
@@ -354,7 +355,7 @@ function view49(context, s, plan, values, showAll = false) {
   const base = context.workbook.worksheets.getItem("EC_Base");
   const rows = s.rawBase.map(row => row.slice());
   if (plan) rows[plan.row - s.start] = values;
-  const visible = s.fields.map((f, c) => showAll || rows.some(row => row && String(row[c]).trim() !== ""));
+  const visible = s.fields.map((f, c) => showAll || (s.start === 6 && c < 4) || rows.some(row => row && String(row[c]).trim() !== ""));
   const titles = base.getRangeByIndexes(s.start - 4, 0, 2, s.fields.length);
   titles.unmerge(); titles.clear("Contents");
   for (let level = 0; level < 2; level++) {
@@ -465,7 +466,7 @@ async function clean49() {
 }
 
 
-// Entrega 59: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
+// Entrega 60: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
 function searchSignature52(s) {
   return JSON.stringify([s.baseId, s.formId, s.metaId, s.fields, s.start, s.rawBase, s.raw, s.baseline]);
 }
@@ -526,7 +527,7 @@ async function search52(confirmDiscard = false) {
 }
 
 
-// Entrega 59: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
+// Entrega 60: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
 function cancelDelete53() {
   ec49.deletePending = null; section49("ec53-delete-confirm-box", false);
 }
@@ -660,7 +661,7 @@ async function delete53(confirm = false) {
 }
 
 
-// Entrega 59: Nueva carga depende solo del formulario y su mapa, como el script 15.
+// Entrega 60: Nueva carga depende solo del formulario y su mapa, como el script 15.
 function cancelNew54() {
   ec49.newPending = null; section49("ec54-new-confirm-box", false);
 }
@@ -774,7 +775,7 @@ async function new54(confirmDiscard = false) {
 }
 
 
-// Entrega 59: navegación visual del panel. Cambiar pestaña no modifica el libro.
+// Entrega 60: navegación visual del panel. Cambiar pestaña no modifica el libro.
 function selectTab55(tab) {
   if (ec49.busy || !["form", "base"].includes(tab)) return;
   for (const name of ["form", "base"]) {
@@ -819,7 +820,7 @@ async function showAll55() {
 }
 
 
-// Entrega 59: Limpiar Base conserva el formulario y audita cada registro eliminado.
+// Entrega 60: Limpiar Base conserva el formulario y audita cada registro eliminado.
 function cancelClearBase56() {
   ec49.clearBasePending = null; section49("ec56-clear-confirm-box", false);
 }
@@ -948,7 +949,7 @@ async function clearBase56(confirm = false) {
     + ". Se conservaron título, instrucciones, encabezados, formatos, botones y el historial de Auditoría. El formulario conserva sus datos; use Nueva carga para comenzar otra persona." + outcome.warning, true);
 }
 
-// Entrega 59: PDF horizontal local. La hoja temporal no modifica Base ni Auditoría.
+// Entrega 60: PDF horizontal local. La hoja temporal no modifica Base ni Auditoría.
 let pdfDownload58 = null;
 function pdfPlan58(fields, raw) {
   const records = raw.filter(row => row.some(v => String(v).trim() !== ""));
@@ -1154,7 +1155,7 @@ async function generatePdf59(vertical = false) {
   message49("PDF " + label + " generado con " + plan.count + " registros y " + plan.fields.length + " campos. Se solicitó la descarga; si no comienza, pulse Descargar PDF " + label + ". Base y Auditoría se conservaron. Revise el archivo antes de limpiar la entrega.", true);
 }
 
-// Entrega 59: misma línea fina negra para bordes internos y perímetro.
+// Entrega 60: misma línea fina negra para bordes internos y perímetro.
 function bordersPdf59(range) {
   for (const edge of ["InsideHorizontal", "InsideVertical", "EdgeTop", "EdgeBottom", "EdgeLeft", "EdgeRight"]) {
     const border = range.format.borders.getItem(edge);
@@ -1248,3 +1249,120 @@ function buildVerticalSheet59(sheet, plan) {
   page.setPrintMargins("Points", { left: 8, right: 8, top: 8, bottom: 8 });
 }
 async function pdfVertical59() { return generatePdf59(true); }
+
+// Entrega 60: actualización explícita, una vez. Los botones de trabajo no reescriben las instrucciones.
+function instructionParts60() {
+  const form = [];
+  const base = [];
+  const add = (list, text, bold = false) => list.push({ text, font: { bold } });
+  add(form, "FORMULARIO UNIFICADO DE SOLICITUD\n", true);
+  add(form, "Permite registrar ingresos, reingresos, transferencias y actualizaciones organizativas con datos de persona, posición y organización. Al guardar, valida los campos obligatorios y acumula los registros en Base para generar el PDF y enviarlo al personal correspondiente.\n");
+  add(form, "ACCESO Y USO\n", true);
+  add(form, "Abra Inicio > Formulario Contreras en Excel. En el complemento, seleccione Formulario para operar las solicitudes o Base e informes para preparar la entrega.\n");
+  add(form, "MOTIVOS DE SOLICITUD\n", true);
+  add(form, "• Ingreso: ", true); add(form, "la persona ingresa por primera vez a Contreras.\n");
+  add(form, "• Reingreso: ", true); add(form, "la persona ya trabajó en Contreras y comienza un nuevo período laboral.\n");
+  add(form, "• Transferencia: ", true); add(form, "la persona está activa y debe reubicarse dentro de la empresa.\n");
+  add(form, "• Actualización organizativa: ", true); add(form, "la persona está activa y se necesita modificar algún dato de su información.\n");
+  add(form, "CAMPOS A COMPLETAR\n", true);
+  add(form, "Los campos se identificarán con distintos colores según el motivo seleccionado: gris, obligatorio; amarillo, opcional; blanco, no requerido para ese motivo.\n");
+  add(form, "BOTONES DEL COMPLEMENTO\n", true);
+  add(form, "• Cargar / Actualizar solicitud: ", true); add(form, "agrega el registro. Si el CUIL ya existe, solicita confirmar su reemplazo completo, incluidos los campos vacíos. Al guardar, pregunta si desea limpiar el formulario.\n");
+  add(form, "• Nueva carga / Limpiar formulario: ", true); add(form, "limpia los datos y conserva la información principal de Solicitud. Si hay cambios sin guardar, pide confirmación.\n");
+  add(form, "• Buscar CUIL: ", true); add(form, "recupera los datos del CUIL indicado en el complemento; si no existe en esta entrega, lo informa.\n");
+  add(form, "• Eliminar solicitud seleccionada: ", true); add(form, "elimina el registro recuperado mediante Buscar CUIL, previa confirmación.\n");
+  add(form, "La carga, actualización y eliminación quedan registradas en Auditoría con el usuario de Microsoft que ejecuta la acción.");
+  add(base, "BASE DE DATOS DE LA ENTREGA\n", true);
+  add(base, "Reúne los registros guardados desde el formulario. Muestra solo los campos con información en al menos un registro; los campos vacíos en toda la entrega se ocultan.\n");
+  add(base, "ACCESO A LOS BOTONES\n", true);
+  add(base, "En Excel, abra Inicio > Formulario Contreras y seleccione Base e informes en el complemento. Allí encontrará los botones de esta hoja:\n");
+  add(base, "• Generar PDF horizontal: ", true); add(base, "descarga los registros y los campos con información, con un registro por fila. Es el formato recomendado si no se indicó otro.\n");
+  add(base, "• Generar PDF vertical: ", true); add(base, "descarga los registros y los campos con información en formato vertical, con un registro por columna. Se utiliza para funciones particulares; si no sabe cuál se requiere, genere el PDF horizontal.\n");
+  add(base, "• Mostrar todos los campos: ", true); add(base, "muestra el esquema completo, incluidos los campos vacíos. La próxima carga o actualización volverá a mostrar solo los campos con información.\n");
+  add(base, "• Limpiar Base / Eliminar entrega: ", true); add(base, "elimina todos los registros de la entrega, previa confirmación. Conserva los encabezados, formatos y el historial de Auditoría. Revise el informe descargado antes de limpiar Base.\n");
+  add(base, "CONFORMIDAD DE ENTREGA\n", true);
+  add(base, "Quien genera el informe declara haber revisado la información incluida y presta conformidad con los datos entregados.");
+  return { form, base };
+}
+function instructionText60(parts) { return parts.map(p => p.text).join(""); }
+function instructionHeight60(parts, width, size) {
+  const capacity = Math.max(20, Math.floor((width - 12) / (size * 0.56)));
+  let lines = 0;
+  for (const paragraph of instructionText60(parts).split("\n")) {
+    let length = 0; lines++;
+    for (const word of paragraph.split(/\s+/)) {
+      if (length > 0 && length + word.length + 1 > capacity) { lines++; length = 0; }
+      length += (length ? 1 : 0) + word.length;
+    }
+  }
+  return Math.min(409.5, Math.max(60, lines * size * 1.25 + 12));
+}
+function setInstructions60(cell, parts, rich, name, size) {
+  cell.values = [[instructionText60(parts)]];
+  cell.format.font.bold = false;
+  if (rich) cell.setCellProperties([[{ textRuns: parts.map(part => ({ text: part.text, font: { name, size, color: "#000000", bold: part.font.bold } })) }]]);
+}
+async function updateInstructions60() {
+  message49("Actualizando únicamente las instrucciones y el formato de las cabeceras…");
+  const rich = !!Office.context?.requirements?.isSetSupported("ExcelApi", "1.18");
+  let completed = false;
+  await Excel.run(async context => {
+    const sheets = context.workbook.worksheets;
+    const form = sheets.getItemOrNullObject("EC_Formulario"), base = sheets.getItemOrNullObject("EC_Base"), meta = sheets.getItemOrNullObject("EC_Campos");
+    form.load("name"); base.load("name"); meta.load("name"); await context.sync();
+    if (form.isNullObject || base.isNullObject || meta.isNullObject) throw new Error("Faltan Formulario, Base o EC_Campos.");
+    const start = meta.getRange("P2"); start.load("values");
+    const map = meta.getUsedRangeOrNullObject(true); map.load("values");
+    const headers = base.getRange("A1:H2"); headers.load("values");
+    const info = form.getRange("A3:H3"); info.load("values");
+    form.protection.load("protected,options"); base.protection.load("protected"); await context.sync();
+    if (Number(start.values[0][0]) !== 6 || map.isNullObject) throw new Error("Esta actualización necesita los encabezados de Base en las filas 3 a 5 y datos desde la fila 6. No se modificó nada.");
+    const fields = map.values.slice(1).filter(f => String(f[0]).trim() !== "");
+    const pinned = ["Motivo de la solicitud", "Fecha de solicitud", "Área solicitante", "ID Solicitante"];
+    if (fields.length < 4 || pinned.some((name, i) => String(fields[i][3]).trim() !== name)) throw new Error("Las cuatro primeras columnas de Base no coinciden con Solicitud. No se modificó nada.");
+    if (fields.some(f => !String(f[7] || "").trim() && Number(f[4]) < 7)) throw new Error("El mapa contiene campos dentro de la zona de instrucciones. No se modificó nada.");
+    if (base.protection.protected) throw new Error("Desproteja EC_Base antes de actualizar sus instrucciones. No se modificó nada.");
+    if (headers.values.some(row => row.slice(1, 4).some(v => String(v).trim() !== ""))) throw new Error("Hay texto adicional en B1:D2 de Base. Revíselo antes de combinar A:D para no perderlo.");
+    const populated = info.values[0].map((v, i) => String(v).trim() !== "" ? i : -1).filter(i => i >= 0);
+    if (populated.length > 1) throw new Error("Hay más de una celda con texto en la fila 3 del formulario. Revísela antes de unificar las instrucciones.");
+    const first = populated.length ? populated[0] : 1;
+    const input = form.getRangeByIndexes(2, first, 1, 1); input.format.font.load("name,size");
+    const baseInfo = base.getRange("A2"); baseInfo.format.font.load("name,size"); await context.sync();
+    const formName = input.format.font.name || "Calibri", formSize = input.format.font.size || 12;
+    const baseName = baseInfo.format.font.name || "Calibri", baseSize = baseInfo.format.font.size || 11;
+    const priorProtected = form.protection.protected, options = form.protection.options;
+    if (priorProtected) { form.protection.unprotect(); await context.sync(); }
+    try {
+      const parts = instructionParts60();
+      // Unificar solo cabeceras; nunca insertar/eliminar filas ni desplazar el mapa.
+      base.getRange("1:2").unmerge();
+      base.getRange("A1:D1").merge(false); base.getRange("A2:D2").merge(false);
+      const title = base.getRange("A1:D1"); title.format.font.bold = true; title.format.wrapText = true;
+      if (String(headers.values[0][0]).trim() === "") base.getRange("A1").values = [["BASE DE DATOS DE LA ENTREGA"]];
+      const baseRange = base.getRange("A2:D2");
+      baseRange.format.wrapText = true; baseRange.format.shrinkToFit = false;
+      baseRange.format.horizontalAlignment = "Left"; baseRange.format.verticalAlignment = "Top";
+      baseRange.format.font.name = baseName; baseRange.format.font.size = baseSize;
+      baseRange.format.font.color = "#000000";
+      setInstructions60(base.getRange("A2"), parts.base, rich, baseName, baseSize);
+      form.getRange("3:3").unmerge();
+      const formRange = form.getRangeByIndexes(2, first, 1, 8 - first); formRange.merge(false);
+      formRange.format.wrapText = true; formRange.format.shrinkToFit = false;
+      formRange.format.horizontalAlignment = "Left"; formRange.format.verticalAlignment = "Top";
+      formRange.format.font.name = formName; formRange.format.font.size = formSize;
+      formRange.format.font.color = "#000000";
+      setInstructions60(form.getRangeByIndexes(2, first, 1, 1), parts.form, rich, formName, formSize);
+      form.getRange("4:4").rowHidden = true;
+      // Las columnas A:D quedan visibles porque sostienen las dos cabeceras combinadas.
+      base.getRange("A:D").columnHidden = false;
+      formRange.load("width"); baseRange.load("width"); await context.sync();
+      formRange.format.rowHeight = instructionHeight60(parts.form, formRange.width || 800, formSize);
+      // Reservar espacio para que el autoajuste de columnas de una carga posterior no corte las instrucciones.
+      baseRange.format.rowHeight = Math.max(360, instructionHeight60(parts.base, baseRange.width || 500, baseSize));
+      await context.sync(); completed = true;
+    } finally {
+      if (priorProtected) { form.protection.protect(options); await context.sync(); }
+    }
+  });
+  if (completed) message49("Instrucciones actualizadas en Formulario y Base. A1:D1 y A2:D2 de Base quedaron combinadas. Se conservaron los campos, registros, Auditoría, colores y PDF." + (rich ? " Solo los títulos y nombres de botones están en negrita." : " Esta versión de Excel no permite negrita parcial; se dejó el texto normal con títulos en mayúsculas."), true);
+}
