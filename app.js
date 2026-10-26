@@ -1,4 +1,4 @@
-/* Entrega 56. Complemento Formulario Contreras para Excel (Office.js).
+/* Entrega 57. Complemento Formulario Contreras para Excel (Office.js).
    Basado en el script 41 suministrado por Agus. NO pegar en Automatizar.
    La identidad se consulta en cada operación y nunca se lee de una celda.
 */
@@ -10,7 +10,7 @@ const formProtection49 = {
 
 Office.onReady(() => {
   const button = document.getElementById("ec49-save");
-  if (!button) { console.log("Entrega 56: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
+  if (!button) { console.log("Entrega 57: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
   button.addEventListener("click", () => task49(start49));
   document.getElementById("ec49-confirm").addEventListener("click", () => task49(confirm49));
   document.getElementById("ec49-cancel").addEventListener("click", () => {
@@ -61,7 +61,7 @@ function section49(id, show) { document.getElementById(id).hidden = !show; }
 function message49(text, ok = false) {
   const box = document.getElementById("ec49-message");
   box.textContent = text; box.className = ok ? "message success" : "message";
-  console.log("ENTREGA 56: " + text);
+  console.log("ENTREGA 57: " + text);
 }
 async function task49(action) {
   if (ec49.busy) return;
@@ -463,7 +463,7 @@ async function clean49() {
 }
 
 
-// Entrega 56: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
+// Entrega 57: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
 function searchSignature52(s) {
   return JSON.stringify([s.baseId, s.formId, s.metaId, s.fields, s.start, s.rawBase, s.raw, s.baseline]);
 }
@@ -524,7 +524,7 @@ async function search52(confirmDiscard = false) {
 }
 
 
-// Entrega 56: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
+// Entrega 57: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
 function cancelDelete53() {
   ec49.deletePending = null; section49("ec53-delete-confirm-box", false);
 }
@@ -658,7 +658,7 @@ async function delete53(confirm = false) {
 }
 
 
-// Entrega 56: Nueva carga depende solo del formulario y su mapa, como el script 15.
+// Entrega 57: Nueva carga depende solo del formulario y su mapa, como el script 15.
 function cancelNew54() {
   ec49.newPending = null; section49("ec54-new-confirm-box", false);
 }
@@ -772,7 +772,7 @@ async function new54(confirmDiscard = false) {
 }
 
 
-// Entrega 56: navegación visual del panel. Cambiar pestaña no modifica el libro.
+// Entrega 57: navegación visual del panel. Cambiar pestaña no modifica el libro.
 function selectTab55(tab) {
   if (ec49.busy || !["form", "base"].includes(tab)) return;
   for (const name of ["form", "base"]) {
@@ -802,7 +802,7 @@ async function readBaseView55(context) {
   if (headers.text[0].some((v, i) => v !== String(fields[i][3]))) throw new Error("Base no coincide con EC_Campos. No se ajustó la vista.");
   const end = Math.max(start - 1, used.isNullObject ? start - 1 : used.rowIndex + used.rowCount);
   if ((end - start + 1) * fields.length > 500000) throw new Error("El rango usado de Base es demasiado grande. Revise las filas con contenido antes de ajustar la vista.");
-  return { fields, start, end, fixedG: Number(settings.values[0][1]), rawBase: [] };
+  return { fields, start, end, fixedG: Number(settings.values[0][1]), rawBase: [], baseId: base.id, metaId: meta.id };
 }
 async function showAll55() {
   message49("Mostrando todos los campos de Base…");
@@ -817,7 +817,7 @@ async function showAll55() {
 }
 
 
-// Entrega 56: Limpiar Base conserva el formulario y audita cada registro eliminado.
+// Entrega 57: Limpiar Base conserva el formulario y audita cada registro eliminado.
 function cancelClearBase56() {
   ec49.clearBasePending = null; section49("ec56-clear-confirm-box", false);
 }
@@ -839,9 +839,8 @@ async function readClearBase56(context) {
   while (count > 0 && !raw[count - 1].some(v => String(v).trim() !== "")) count--;
   const snapshot = raw.slice(0, count);
   const records = snapshot.filter(r => r.some(v => String(v).trim() !== ""));
-  const sheets = context.workbook.worksheets;
-  return { ...s, snapshot, records, baseId: sheets.getItem("EC_Base").id, metaId: sheets.getItem("EC_Campos").id,
-    auditId: audit.id, auditNext: Math.max(1, used.isNullObject ? 1 : used.rowIndex + used.rowCount) };
+  // Reutilizar los ID leídos con load("name,id") y context.sync en readBaseView55.
+  return { ...s, snapshot, records, auditId: audit.id, auditNext: Math.max(1, used.isNullObject ? 1 : used.rowIndex + used.rowCount) };
 }
 function clearSignature56(s) {
   return JSON.stringify([s.baseId, s.metaId, s.auditId, s.fields, s.start, s.end, s.snapshot, s.auditNext]);
