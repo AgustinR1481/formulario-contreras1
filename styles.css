@@ -30,3 +30,6 @@ button.danger { background: #a4262c; border-color: #a4262c; color: #fff; }
 .base-title { color: #595959; }
 .base-note { margin-top: 16px; padding: 12px; background: #f3f3f3; color: #555; line-height: 1.5; }
 button:focus-visible, input:focus-visible { outline: 3px solid #0078d4; outline-offset: 2px; }
+
+/* Entrega 58: enlace de descarga manual si el navegador no inicia la descarga. */
+.download-link { display:block; padding:12px; margin:8px 0; border:1px solid #595959; border-radius:6px; color:#333; font-weight:bold; text-align:center; }

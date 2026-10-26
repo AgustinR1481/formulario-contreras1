@@ -1,4 +1,4 @@
-/* Entrega 57. Complemento Formulario Contreras para Excel (Office.js).
+/* Entrega 58. Complemento Formulario Contreras para Excel (Office.js).
    Basado en el script 41 suministrado por Agus. NO pegar en Automatizar.
    La identidad se consulta en cada operación y nunca se lee de una celda.
 */
@@ -10,7 +10,7 @@ const formProtection49 = {
 
 Office.onReady(() => {
   const button = document.getElementById("ec49-save");
-  if (!button) { console.log("Entrega 57: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
+  if (!button) { console.log("Entrega 58: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
   button.addEventListener("click", () => task49(start49));
   document.getElementById("ec49-confirm").addEventListener("click", () => task49(confirm49));
   document.getElementById("ec49-cancel").addEventListener("click", () => {
@@ -54,6 +54,7 @@ Office.onReady(() => {
   document.getElementById("ec56-clear-cancel").addEventListener("click", () => {
     cancelClearBase56(); message49("Limpieza de Base cancelada. Todos los registros se conservaron.");
   });
+  document.getElementById("ec58-pdf-horizontal").addEventListener("click", () => task49(pdfHorizontal58));
   selectTab55("form");
   message49("Listo. Complete el formulario de Excel y pulse Cargar / Actualizar aquí.");
 });
@@ -61,7 +62,7 @@ function section49(id, show) { document.getElementById(id).hidden = !show; }
 function message49(text, ok = false) {
   const box = document.getElementById("ec49-message");
   box.textContent = text; box.className = ok ? "message success" : "message";
-  console.log("ENTREGA 57: " + text);
+  console.log("ENTREGA 58: " + text);
 }
 async function task49(action) {
   if (ec49.busy) return;
@@ -463,7 +464,7 @@ async function clean49() {
 }
 
 
-// Entrega 57: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
+// Entrega 58: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
 function searchSignature52(s) {
   return JSON.stringify([s.baseId, s.formId, s.metaId, s.fields, s.start, s.rawBase, s.raw, s.baseline]);
 }
@@ -524,7 +525,7 @@ async function search52(confirmDiscard = false) {
 }
 
 
-// Entrega 57: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
+// Entrega 58: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
 function cancelDelete53() {
   ec49.deletePending = null; section49("ec53-delete-confirm-box", false);
 }
@@ -658,7 +659,7 @@ async function delete53(confirm = false) {
 }
 
 
-// Entrega 57: Nueva carga depende solo del formulario y su mapa, como el script 15.
+// Entrega 58: Nueva carga depende solo del formulario y su mapa, como el script 15.
 function cancelNew54() {
   ec49.newPending = null; section49("ec54-new-confirm-box", false);
 }
@@ -772,7 +773,7 @@ async function new54(confirmDiscard = false) {
 }
 
 
-// Entrega 57: navegación visual del panel. Cambiar pestaña no modifica el libro.
+// Entrega 58: navegación visual del panel. Cambiar pestaña no modifica el libro.
 function selectTab55(tab) {
   if (ec49.busy || !["form", "base"].includes(tab)) return;
   for (const name of ["form", "base"]) {
@@ -817,7 +818,7 @@ async function showAll55() {
 }
 
 
-// Entrega 57: Limpiar Base conserva el formulario y audita cada registro eliminado.
+// Entrega 58: Limpiar Base conserva el formulario y audita cada registro eliminado.
 function cancelClearBase56() {
   ec49.clearBasePending = null; section49("ec56-clear-confirm-box", false);
 }
@@ -944,4 +945,205 @@ async function clearBase56(confirm = false) {
   section49("ec49-confirm-box", false); section49("ec52-search-confirm-box", false); section49("ec49-clean-box", false);
   message49("Base limpia: " + outcome.count + " registros eliminados y registrados en Auditoría con el usuario " + identity.user
     + ". Se conservaron título, instrucciones, encabezados, formatos, botones y el historial de Auditoría. El formulario conserva sus datos; use Nueva carga para comenzar otra persona." + outcome.warning, true);
+}
+
+// Entrega 58: PDF horizontal local. La hoja temporal no modifica Base ni Auditoría.
+let pdfDownload58 = null;
+function pdfPlan58(fields, raw) {
+  const records = raw.filter(row => row.some(v => String(v).trim() !== ""));
+  if (!records.length) throw new Error("Base está vacía. Cargue al menos una solicitud antes de generar el PDF.");
+  const columns = fields.map((_, c) => c).filter(c => records.some(row => String(row[c]).trim() !== ""));
+  if (records.some(row => columns.some(c => /[\r\n]/.test(String(row[c])))))
+    throw new Error("Hay un dato con saltos de línea en Base. Corríjalo antes de generar el PDF para conservar una fila por registro al copiarlo a Excel.");
+  const selected = columns.map(c => fields[c]);
+  const data = records.map(row => columns.map(c => String(row[c] ?? "")));
+  const widths = selected.map((f, c) => Math.max(65, Math.min(600,
+    data.reduce((max, row) => Math.max(max, row[c].length), String(f[3]).length) * 7 + 24)));
+  const scale = Math.min(1, 6500 / widths.reduce((a, b) => a + b, 0));
+  return { fields: selected, data, widths: widths.map(w => w * scale), count: records.length };
+}
+async function readPdf58(context) {
+  const sheets = context.workbook.worksheets;
+  const base = sheets.getItemOrNullObject("EC_Base"), meta = sheets.getItemOrNullObject("EC_Campos");
+  base.load("name,id"); meta.load("name,id"); await context.sync();
+  if (base.isNullObject || meta.isNullObject) throw new Error("Faltan EC_Base o EC_Campos.");
+  const map = meta.getUsedRangeOrNullObject(true); map.load("values");
+  const setting = meta.getRange("P2"); setting.load("values");
+  const used = base.getUsedRangeOrNullObject(true); used.load("rowIndex,rowCount");
+  await context.sync();
+  if (map.isNullObject) throw new Error("EC_Campos está vacío.");
+  const fields = map.values.slice(1).filter(row => String(row[0]).trim() !== "").map(row => row.slice(0, 8));
+  const start = Number(setting.values[0][0]) || 4;
+  if (!fields.length || ![4, 6].includes(start)) throw new Error("Revise el mapa de campos y la primera fila de datos de Base.");
+  const headers = base.getRangeByIndexes(start - 2, 0, 1, fields.length); headers.load("text");
+  const end = used.isNullObject ? start - 1 : used.rowIndex + used.rowCount;
+  if (end < start) throw new Error("Base está vacía. No se generó ningún informe.");
+  if ((end - start + 1) * fields.length > 500000) throw new Error("Base tiene un rango usado demasiado grande. Revise las filas con contenido antes de generar el informe.");
+  const data = base.getRangeByIndexes(start - 1, 0, end - start + 1, fields.length); data.load("text");
+  await context.sync();
+  if (headers.text[0].some((v, i) => v !== String(fields[i][3]))) throw new Error("Los encabezados de Base no coinciden con EC_Campos. No se generó el PDF.");
+  return pdfPlan58(fields, data.text);
+}
+function buildPdfSheet58(sheet, plan) {
+  const n = plan.fields.length, height = plan.data.length + 4;
+  const table = sheet.getRangeByIndexes(0, 0, height, n);
+  table.numberFormat = formats49(height, n);
+  table.format.font.name = "Arial"; table.format.font.size = 11;
+  table.format.font.color = "#000000"; table.format.fill.color = "#FFFFFF";
+  table.format.wrapText = false; table.format.shrinkToFit = true;
+  table.format.verticalAlignment = "Center";
+  table.format.font.strikethrough = false;
+  const grid = sheet.getRangeByIndexes(1, 0, height - 1, n);
+  for (const edge of ["InsideHorizontal", "InsideVertical"]) {
+    const border = grid.format.borders.getItem(edge);
+    border.style = "Continuous"; border.weight = "Thin"; border.color = "#000000";
+  }
+  for (const edge of ["EdgeTop", "EdgeBottom", "EdgeLeft", "EdgeRight", "DiagonalDown", "DiagonalUp"])
+    grid.format.borders.getItem(edge).style = "None";
+  sheet.getRangeByIndexes(3, 0, 1, n).values = [plan.fields.map(f => literal49(String(f[3])))];
+  sheet.getRangeByIndexes(4, 0, plan.data.length, n).values = plan.data.map(row => row.map(literal49));
+  for (let level = 0; level < 2; level++) {
+    let first = 0;
+    while (first < n) {
+      const block = String(plan.fields[first][1]);
+      const label = String(plan.fields[first][level === 0 ? 1 : 2]);
+      let end = first + 1;
+      while (end < n && String(plan.fields[end][1]) === block &&
+        (level === 0 || String(plan.fields[end][2]) === label)) end++;
+      if (label.trim()) {
+        const range = sheet.getRangeByIndexes(level + 1, first, 1, end - first);
+        if (end - first > 1) range.merge();
+        sheet.getRangeByIndexes(level + 1, first, 1, 1).values = [[literal49(label)]];
+      }
+      first = end;
+    }
+  }
+  // Colorear el bloque completo después de combinar, incluyendo sus títulos y subgrupos.
+  let firstBlock = 0;
+  while (firstBlock < n) {
+    const block = String(plan.fields[firstBlock][1]).trim();
+    let end = firstBlock + 1;
+    while (end < n && String(plan.fields[end][1]).trim() === block) end++;
+    const header = sheet.getRangeByIndexes(1, firstBlock, 3, end - firstBlock);
+    header.format.fill.color = block === "Persona" ? "#595959" : block === "Posición/Especialidad" ? "#922D3D" : "#F5F1ED";
+    header.format.font.color = ["Persona", "Posición/Especialidad"].includes(block) ? "#FFFFFF" : "#000000";
+    firstBlock = end;
+  }
+  for (let c = 0; c < n; c++) sheet.getRangeByIndexes(0, c, height, 1).format.columnWidth = plan.widths[c];
+  for (let level = 0; level < 3; level++) {
+    const row = sheet.getRangeByIndexes(level + 1, 0, 1, n);
+    row.format.font.size = [16, 14, 11][level]; row.format.font.bold = true;
+    row.format.rowHeight = [38, 32, 30][level];
+  }
+  sheet.getRangeByIndexes(4, 0, plan.data.length, n).format.rowHeight = 26;
+  const legend = sheet.getRangeByIndexes(0, 0, 1, n);
+  if (n > 1) legend.merge();
+  sheet.getRangeByIndexes(0, 0, 1, 1).values = [["Conformidad de entrega: Quien genera este informe declara haber revisado la información incluida y presta conformidad con los datos entregados."]];
+  legend.format.font.bold = true; legend.format.rowHeight = 28;
+  const page = sheet.pageLayout;
+  page.orientation = "Landscape"; page.paperSize = "A3";
+  page.zoom = { horizontalFitToPages: 1, verticalFitToPages: 1 };
+  page.printGridlines = false; page.printHeadings = false; page.draftMode = false;
+  page.blackAndWhite = false;
+  page.setPrintArea(table);
+  page.setPrintMargins("Points", { left: 8, right: 8, top: 8, bottom: 8 });
+}
+// Cierra el archivo de Office después de leer todos los fragmentos, incluso si falla la lectura.
+async function pdfBytes58() {
+  const file = await new Promise((resolve, reject) => {
+    let expired = false;
+    const timer = setTimeout(() => { expired = true; reject(new Error("Excel no terminó de convertir el PDF en 60 segundos. Intente nuevamente cuando el archivo termine de sincronizar.")); }, 60000);
+    try {
+      Office.context.document.getFileAsync(Office.FileType.Pdf, { sliceSize: 65536 }, result => {
+        if (expired) { if (result.status === Office.AsyncResultStatus.Succeeded) result.value.closeAsync(() => {}); return; }
+        clearTimeout(timer);
+        if (result.status !== Office.AsyncResultStatus.Succeeded) reject(new Error("Excel no pudo exportar el PDF: " + (result.error?.message || "error de conversión")));
+        else resolve(result.value);
+      });
+    } catch (e) { clearTimeout(timer); reject(e); }
+  });
+  try {
+    if (!file.size || !file.sliceCount) throw new Error("Excel devolvió un PDF vacío. No se descargó ningún archivo. Intente nuevamente después de sincronizar el libro.");
+    const chunks = [];
+    for (let i = 0; i < file.sliceCount; i++) {
+      const data = await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("Se interrumpió la lectura del PDF. Vuelva a intentar.")), 15000);
+        try { file.getSliceAsync(i, result => {
+          clearTimeout(timer);
+          if (result.status !== Office.AsyncResultStatus.Succeeded) reject(new Error(result.error?.message || "No se pudo leer un fragmento del PDF."));
+          else resolve(result.value.data);
+        }); } catch (e) { clearTimeout(timer); reject(e); }
+      });
+      chunks.push(new Uint8Array(data));
+    }
+    const size = chunks.reduce((total, part) => total + part.length, 0);
+    if (size !== file.size) throw new Error("El PDF se recibió incompleto. No se descargó ningún archivo.");
+    const bytes = new Uint8Array(size); let at = 0;
+    for (const part of chunks) { bytes.set(part, at); at += part.length; }
+    if (String.fromCharCode(...bytes.slice(0, 5)) !== "%PDF-") throw new Error("Excel devolvió un archivo que no tiene formato PDF.");
+    return bytes;
+  } finally { file.closeAsync(() => {}); }
+}
+async function restorePdf58(state) {
+  if (!state.originals.length) return;
+  await Excel.run(async context => {
+    const sheets = context.workbook.worksheets;
+    const refs = state.originals.map(saved => ({ saved, sheet: sheets.getItemOrNullObject(saved.id) }));
+    const temp = state.tempId ? sheets.getItemOrNullObject(state.tempId) : sheets.getItemOrNullObject(state.tempName);
+    refs.forEach(r => r.sheet.load("name,id,visibility")); temp.load("name,id"); await context.sync();
+    // Primero reabrir las hojas originalmente visibles; nunca ocultar la última hoja visible.
+    refs.filter(r => !r.sheet.isNullObject && r.saved.visibility === "Visible").forEach(r => r.sheet.visibility = "Visible");
+    await context.sync();
+    const active = refs.find(r => r.saved.id === state.activeId && !r.sheet.isNullObject);
+    if (active) active.sheet.activate();
+    refs.filter(r => !r.sheet.isNullObject && r.saved.visibility !== "Visible").forEach(r => r.sheet.visibility = r.saved.visibility);
+    await context.sync();
+    if (!temp.isNullObject) temp.delete();
+    await context.sync();
+  });
+}
+async function pdfHorizontal58() {
+  if (!Office.context?.document?.getFileAsync) throw new Error("Esta versión de Excel no ofrece la exportación PDF desde el complemento.");
+  if (Office.context.requirements && !Office.context.requirements.isSetSupported("ExcelApi", "1.9"))
+    throw new Error("Actualice Excel para generar el PDF desde este complemento (ExcelApi 1.9).");
+  cancelClearBase56(); cancelNew54(); cancelDelete53();
+  ec49.pending = null; ec49.searchPending = null; ec49.saved = null;
+  section49("ec49-confirm-box", false); section49("ec52-search-confirm-box", false); section49("ec49-clean-box", false);
+  section49("ec58-download-box", false);
+  if (pdfDownload58) { URL.revokeObjectURL(pdfDownload58); pdfDownload58 = null; }
+  message49("Preparando el PDF horizontal… Espere a que finalice antes de editar el libro.");
+  const state = { originals: [], activeId: "", tempId: "", tempName: "EC_PDFH_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6) };
+  let bytes, plan, error, cleanupError;
+  try {
+    await Excel.run(async context => {
+      const sheets = context.workbook.worksheets;
+      const active = sheets.getActiveWorksheet(); active.load("id");
+      sheets.load("items/name,items/id,items/visibility");
+      context.workbook.protection.load("protected"); await context.sync();
+      if (context.workbook.protection.protected) throw new Error("Desproteja la estructura del libro para generar el PDF. Los datos no se modificaron.");
+      plan = await readPdf58(context);
+      // Snapshot de identidad y visibilidad de cada hoja antes de crear o esconder ninguna.
+      state.originals = sheets.items.map(s => ({ id: s.id, visibility: s.visibility }));
+      state.activeId = active.id;
+      const temp = sheets.add(state.tempName); temp.load("name,id"); await context.sync(); state.tempId = temp.id;
+      buildPdfSheet58(temp, plan); temp.activate(); await context.sync();
+      state.originals.filter(s => s.visibility === "Visible").forEach(s => sheets.getItem(s.id).visibility = "Hidden");
+      await context.sync();
+    });
+    message49("Excel está convirtiendo el informe de " + plan.count + " registros y " + plan.fields.length + " campos a PDF…");
+    bytes = await pdfBytes58();
+  } catch (e) { error = e; }
+  finally { try { await restorePdf58(state); } catch (e) { cleanupError = e; } }
+  if (cleanupError) {
+    message49("No se pudo retirar por completo la vista temporal del PDF. Sus registros siguen en EC_Base. No limpie Base. Muestre las hojas originales y revise la hoja " + state.tempName + ". Detalle: " + String(cleanupError));
+    return;
+  }
+  if (error) throw error;
+  const name = "Informe_EC_Base_" + new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-") + ".pdf";
+  if (pdfDownload58) URL.revokeObjectURL(pdfDownload58);
+  pdfDownload58 = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+  const link = document.getElementById("ec58-download");
+  link.href = pdfDownload58; link.download = name; link.textContent = "Descargar PDF horizontal";
+  section49("ec58-download-box", true); link.click();
+  message49("PDF horizontal generado con " + plan.count + " registros y " + plan.fields.length + " campos. Se solicitó la descarga; si no comienza, pulse Descargar PDF horizontal. Base y Auditoría se conservaron. Revise el archivo antes de limpiar la entrega.", true);
 }
