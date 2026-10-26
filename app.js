@@ -1,4 +1,4 @@
-/* Entrega 61. Complemento Formulario Contreras para Excel (Office.js).
+/* Entrega 62. Complemento Formulario Contreras para Excel (Office.js).
    Basado en el script 41 suministrado por Agus. NO pegar en Automatizar.
    La identidad se consulta en cada operación y nunca se lee de una celda.
 */
@@ -10,7 +10,7 @@ const formProtection49 = {
 
 Office.onReady(() => {
   const button = document.getElementById("ec49-save");
-  if (!button) { console.log("Entrega 61: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
+  if (!button) { console.log("Entrega 62: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
   button.addEventListener("click", () => task49(start49));
   document.getElementById("ec49-confirm").addEventListener("click", () => task49(confirm49));
   document.getElementById("ec49-cancel").addEventListener("click", () => {
@@ -56,8 +56,6 @@ Office.onReady(() => {
   });
   document.getElementById("ec58-pdf-horizontal").addEventListener("click", () => task49(pdfHorizontal58, false));
   document.getElementById("ec59-pdf-vertical").addEventListener("click", () => task49(pdfVertical59, false));
-  document.getElementById("ec60-instructions").addEventListener("click", () => task49(updateInstructions60));
-  document.getElementById("ec61-protect").addEventListener("click", () => task49(applyProtection61, false));
   selectTab55("form");
   message49("Listo. Complete el formulario de Excel y pulse Cargar / Actualizar aquí.");
 });
@@ -65,7 +63,7 @@ function section49(id, show) { document.getElementById(id).hidden = !show; }
 function message49(text, ok = false) {
   const box = document.getElementById("ec49-message");
   box.textContent = text; box.className = ok ? "message success" : "message";
-  console.log("ENTREGA 61: " + text);
+  console.log("ENTREGA 62: " + text);
 }
 async function task49(action, editBaseAudit = true) {
   if (ec49.busy) return;
@@ -467,7 +465,7 @@ async function clean49() {
 }
 
 
-// Entrega 61: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
+// Entrega 62: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
 function searchSignature52(s) {
   return JSON.stringify([s.baseId, s.formId, s.metaId, s.fields, s.start, s.rawBase, s.raw, s.baseline]);
 }
@@ -528,7 +526,7 @@ async function search52(confirmDiscard = false) {
 }
 
 
-// Entrega 61: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
+// Entrega 62: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
 function cancelDelete53() {
   ec49.deletePending = null; section49("ec53-delete-confirm-box", false);
 }
@@ -662,7 +660,7 @@ async function delete53(confirm = false) {
 }
 
 
-// Entrega 61: Nueva carga depende solo del formulario y su mapa, como el script 15.
+// Entrega 62: Nueva carga depende solo del formulario y su mapa, como el script 15.
 function cancelNew54() {
   ec49.newPending = null; section49("ec54-new-confirm-box", false);
 }
@@ -776,7 +774,7 @@ async function new54(confirmDiscard = false) {
 }
 
 
-// Entrega 61: navegación visual del panel. Cambiar pestaña no modifica el libro.
+// Entrega 62: navegación visual del panel. Cambiar pestaña no modifica el libro.
 function selectTab55(tab) {
   if (ec49.busy || !["form", "base"].includes(tab)) return;
   for (const name of ["form", "base"]) {
@@ -821,7 +819,7 @@ async function showAll55() {
 }
 
 
-// Entrega 61: Limpiar Base conserva el formulario y audita cada registro eliminado.
+// Entrega 62: Limpiar Base conserva el formulario y audita cada registro eliminado.
 function cancelClearBase56() {
   ec49.clearBasePending = null; section49("ec56-clear-confirm-box", false);
 }
@@ -950,7 +948,7 @@ async function clearBase56(confirm = false) {
     + ". Se conservaron título, instrucciones, encabezados, formatos, botones y el historial de Auditoría. El formulario conserva sus datos; use Nueva carga para comenzar otra persona." + outcome.warning, true);
 }
 
-// Entrega 61: PDF horizontal local. La hoja temporal no modifica Base ni Auditoría.
+// Entrega 62: PDF horizontal local. La hoja temporal no modifica Base ni Auditoría.
 let pdfDownload58 = null;
 function pdfPlan58(fields, raw) {
   const records = raw.filter(row => row.some(v => String(v).trim() !== ""));
@@ -1156,7 +1154,7 @@ async function generatePdf59(vertical = false) {
   message49("PDF " + label + " generado con " + plan.count + " registros y " + plan.fields.length + " campos. Se solicitó la descarga; si no comienza, pulse Descargar PDF " + label + ". Base y Auditoría se conservaron. Revise el archivo antes de limpiar la entrega.", true);
 }
 
-// Entrega 61: misma línea fina negra para bordes internos y perímetro.
+// Entrega 62: misma línea fina negra para bordes internos y perímetro.
 function bordersPdf59(range) {
   for (const edge of ["InsideHorizontal", "InsideVertical", "EdgeTop", "EdgeBottom", "EdgeLeft", "EdgeRight"]) {
     const border = range.format.borders.getItem(edge);
@@ -1251,7 +1249,7 @@ function buildVerticalSheet59(sheet, plan) {
 }
 async function pdfVertical59() { return generatePdf59(true); }
 
-// Entrega 61: actualización explícita, una vez. Los botones de trabajo no reescriben las instrucciones.
+// Entrega 62: actualización explícita, una vez. Los botones de trabajo no reescriben las instrucciones.
 function instructionParts60() {
   const form = [];
   const base = [];
@@ -1368,7 +1366,7 @@ async function updateInstructions60() {
   if (completed) message49("Instrucciones actualizadas en Formulario y Base. A1:D1 y A2:D2 de Base quedaron combinadas. Se conservaron los campos, registros, Auditoría, colores y PDF." + (rich ? " Solo los títulos y nombres de botones están en negrita." : " Esta versión de Excel no permite negrita parcial; se dejó el texto normal con títulos en mayúsculas."), true);
 }
 
-// Entrega 61. Protección operativa SIN contraseña. No es un control de confidencialidad.
+// Entrega 62. Protección operativa SIN contraseña. No es un control de confidencialidad.
 // La estructura del libro queda libre para que funcionen los PDF temporales.
 async function restoreProtection61(states) {
   if (!states.length) return;

@@ -34,5 +34,3 @@ button:focus-visible, input:focus-visible { outline: 3px solid #0078d4; outline-
 /* Entrega 58: enlace de descarga manual si el navegador no inicia la descarga. */
 .download-link { display:block; padding:12px; margin:8px 0; border:1px solid #595959; border-radius:6px; color:#333; font-weight:bold; text-align:center; }
 
-.ec60-settings { margin-top:20px; padding-top:12px; border-top:1px solid #ddd; font-size:12px; color:#555; }
-.ec60-settings summary { cursor:pointer; }
