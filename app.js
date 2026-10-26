@@ -1,4 +1,4 @@
-/* Entrega 60. Complemento Formulario Contreras para Excel (Office.js).
+/* Entrega 61. Complemento Formulario Contreras para Excel (Office.js).
    Basado en el script 41 suministrado por Agus. NO pegar en Automatizar.
    La identidad se consulta en cada operación y nunca se lee de una celda.
 */
@@ -10,20 +10,20 @@ const formProtection49 = {
 
 Office.onReady(() => {
   const button = document.getElementById("ec49-save");
-  if (!button) { console.log("Entrega 60: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
+  if (!button) { console.log("Entrega 61: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
   button.addEventListener("click", () => task49(start49));
   document.getElementById("ec49-confirm").addEventListener("click", () => task49(confirm49));
   document.getElementById("ec49-cancel").addEventListener("click", () => {
     ec49.pending = null; section49("ec49-confirm-box", false);
     message49("Actualización cancelada. Base y Auditoría no se modificaron.");
   });
-  document.getElementById("ec49-clean").addEventListener("click", () => task49(clean49));
+  document.getElementById("ec49-clean").addEventListener("click", () => task49(clean49, false));
   document.getElementById("ec49-keep").addEventListener("click", () => {
     ec49.saved = null; section49("ec49-clean-box", false);
     message49("Se conservaron los datos del formulario. La solicitud ya está guardada.", true);
   });
-  document.getElementById("ec52-search").addEventListener("click", () => task49(() => search52(false)));
-  document.getElementById("ec52-search-confirm").addEventListener("click", () => task49(() => search52(true)));
+  document.getElementById("ec52-search").addEventListener("click", () => task49(() => search52(false), false));
+  document.getElementById("ec52-search-confirm").addEventListener("click", () => task49(() => search52(true), false));
   document.getElementById("ec52-search-cancel").addEventListener("click", () => {
     ec49.searchPending = null; section49("ec52-search-confirm-box", false);
     message49("Búsqueda cancelada. Se conservaron los datos del formulario.");
@@ -33,8 +33,8 @@ Office.onReady(() => {
   document.getElementById("ec53-delete-cancel").addEventListener("click", () => {
     cancelDelete53(); message49("Eliminación cancelada. Base, Auditoría y el formulario se conservaron.");
   });
-  document.getElementById("ec54-new").addEventListener("click", () => task49(() => new54(false)));
-  document.getElementById("ec54-new-confirm").addEventListener("click", () => task49(() => new54(true)));
+  document.getElementById("ec54-new").addEventListener("click", () => task49(() => new54(false), false));
+  document.getElementById("ec54-new-confirm").addEventListener("click", () => task49(() => new54(true), false));
   document.getElementById("ec54-new-cancel").addEventListener("click", () => {
     cancelNew54(); message49("Nueva carga cancelada. Se conservaron los datos del formulario.");
   });
@@ -54,9 +54,10 @@ Office.onReady(() => {
   document.getElementById("ec56-clear-cancel").addEventListener("click", () => {
     cancelClearBase56(); message49("Limpieza de Base cancelada. Todos los registros se conservaron.");
   });
-  document.getElementById("ec58-pdf-horizontal").addEventListener("click", () => task49(pdfHorizontal58));
-  document.getElementById("ec59-pdf-vertical").addEventListener("click", () => task49(pdfVertical59));
+  document.getElementById("ec58-pdf-horizontal").addEventListener("click", () => task49(pdfHorizontal58, false));
+  document.getElementById("ec59-pdf-vertical").addEventListener("click", () => task49(pdfVertical59, false));
   document.getElementById("ec60-instructions").addEventListener("click", () => task49(updateInstructions60));
+  document.getElementById("ec61-protect").addEventListener("click", () => task49(applyProtection61, false));
   selectTab55("form");
   message49("Listo. Complete el formulario de Excel y pulse Cargar / Actualizar aquí.");
 });
@@ -64,13 +65,13 @@ function section49(id, show) { document.getElementById(id).hidden = !show; }
 function message49(text, ok = false) {
   const box = document.getElementById("ec49-message");
   box.textContent = text; box.className = ok ? "message success" : "message";
-  console.log("ENTREGA 60: " + text);
+  console.log("ENTREGA 61: " + text);
 }
-async function task49(action) {
+async function task49(action, editBaseAudit = true) {
   if (ec49.busy) return;
   ec49.busy = true;
   document.querySelectorAll("#ec49 button").forEach(button => button.disabled = true);
-  try { await action(); }
+  try { if (editBaseAudit) await withProtectedSheets61(action); else await action(); }
   catch (error) {
     cancelClearBase56();
     cancelNew54();
@@ -466,7 +467,7 @@ async function clean49() {
 }
 
 
-// Entrega 60: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
+// Entrega 61: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
 function searchSignature52(s) {
   return JSON.stringify([s.baseId, s.formId, s.metaId, s.fields, s.start, s.rawBase, s.raw, s.baseline]);
 }
@@ -527,7 +528,7 @@ async function search52(confirmDiscard = false) {
 }
 
 
-// Entrega 60: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
+// Entrega 61: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
 function cancelDelete53() {
   ec49.deletePending = null; section49("ec53-delete-confirm-box", false);
 }
@@ -661,7 +662,7 @@ async function delete53(confirm = false) {
 }
 
 
-// Entrega 60: Nueva carga depende solo del formulario y su mapa, como el script 15.
+// Entrega 61: Nueva carga depende solo del formulario y su mapa, como el script 15.
 function cancelNew54() {
   ec49.newPending = null; section49("ec54-new-confirm-box", false);
 }
@@ -775,7 +776,7 @@ async function new54(confirmDiscard = false) {
 }
 
 
-// Entrega 60: navegación visual del panel. Cambiar pestaña no modifica el libro.
+// Entrega 61: navegación visual del panel. Cambiar pestaña no modifica el libro.
 function selectTab55(tab) {
   if (ec49.busy || !["form", "base"].includes(tab)) return;
   for (const name of ["form", "base"]) {
@@ -820,7 +821,7 @@ async function showAll55() {
 }
 
 
-// Entrega 60: Limpiar Base conserva el formulario y audita cada registro eliminado.
+// Entrega 61: Limpiar Base conserva el formulario y audita cada registro eliminado.
 function cancelClearBase56() {
   ec49.clearBasePending = null; section49("ec56-clear-confirm-box", false);
 }
@@ -949,7 +950,7 @@ async function clearBase56(confirm = false) {
     + ". Se conservaron título, instrucciones, encabezados, formatos, botones y el historial de Auditoría. El formulario conserva sus datos; use Nueva carga para comenzar otra persona." + outcome.warning, true);
 }
 
-// Entrega 60: PDF horizontal local. La hoja temporal no modifica Base ni Auditoría.
+// Entrega 61: PDF horizontal local. La hoja temporal no modifica Base ni Auditoría.
 let pdfDownload58 = null;
 function pdfPlan58(fields, raw) {
   const records = raw.filter(row => row.some(v => String(v).trim() !== ""));
@@ -1155,7 +1156,7 @@ async function generatePdf59(vertical = false) {
   message49("PDF " + label + " generado con " + plan.count + " registros y " + plan.fields.length + " campos. Se solicitó la descarga; si no comienza, pulse Descargar PDF " + label + ". Base y Auditoría se conservaron. Revise el archivo antes de limpiar la entrega.", true);
 }
 
-// Entrega 60: misma línea fina negra para bordes internos y perímetro.
+// Entrega 61: misma línea fina negra para bordes internos y perímetro.
 function bordersPdf59(range) {
   for (const edge of ["InsideHorizontal", "InsideVertical", "EdgeTop", "EdgeBottom", "EdgeLeft", "EdgeRight"]) {
     const border = range.format.borders.getItem(edge);
@@ -1250,7 +1251,7 @@ function buildVerticalSheet59(sheet, plan) {
 }
 async function pdfVertical59() { return generatePdf59(true); }
 
-// Entrega 60: actualización explícita, una vez. Los botones de trabajo no reescriben las instrucciones.
+// Entrega 61: actualización explícita, una vez. Los botones de trabajo no reescriben las instrucciones.
 function instructionParts60() {
   const form = [];
   const base = [];
@@ -1365,4 +1366,68 @@ async function updateInstructions60() {
     }
   });
   if (completed) message49("Instrucciones actualizadas en Formulario y Base. A1:D1 y A2:D2 de Base quedaron combinadas. Se conservaron los campos, registros, Auditoría, colores y PDF." + (rich ? " Solo los títulos y nombres de botones están en negrita." : " Esta versión de Excel no permite negrita parcial; se dejó el texto normal con títulos en mayúsculas."), true);
+}
+
+// Entrega 61. Protección operativa SIN contraseña. No es un control de confidencialidad.
+// La estructura del libro queda libre para que funcionen los PDF temporales.
+async function restoreProtection61(states) {
+  if (!states.length) return;
+  await Excel.run(async context => {
+    const refs = states.filter(s => s.protected).map(s => ({ state: s, sheet: context.workbook.worksheets.getItemOrNullObject(s.name) }));
+    refs.forEach(r => { r.sheet.load("name"); r.sheet.protection.load("protected"); });
+    await context.sync();
+    const errors = [];
+    // Son solo dos hojas: intentar ambas aunque una falle al recuperar su protección.
+    for (const r of refs) {
+      if (r.sheet.isNullObject) { errors.push("Falta " + r.state.name); continue; }
+      if (r.sheet.protection.protected) continue;
+      try { r.sheet.protection.protect(r.state.options); await context.sync(); }
+      catch (e) { errors.push(r.state.name + ": " + String(e)); }
+    }
+    if (errors.length) throw new Error(errors.join("; "));
+  });
+}
+async function withProtectedSheets61(action) {
+  let states = [], result, error, completed = false;
+  try {
+    await Excel.run(async context => {
+      const refs = ["EC_Base", "EC_Auditoria"].map(name => ({ name, sheet: context.workbook.worksheets.getItemOrNullObject(name) }));
+      refs.forEach(r => r.sheet.load("name")); await context.sync();
+      for (const r of refs) if (!r.sheet.isNullObject) r.sheet.protection.load("protected,options");
+      await context.sync();
+      states = refs.filter(r => !r.sheet.isNullObject).map(r => ({ name: r.name, protected: r.sheet.protection.protected, options: { ...r.sheet.protection.options } }));
+      for (const r of refs) if (!r.sheet.isNullObject && r.sheet.protection.protected) r.sheet.protection.unprotect();
+      await context.sync();
+    });
+    result = await action(); completed = true;
+  } catch (e) { error = e; }
+  try { await restoreProtection61(states); }
+  catch (e) {
+    throw new Error((completed ? "La operación finalizó, pero no se pudo restablecer la protección de Base o Auditoría. Verifique los datos antes de repetir una carga. " : "La operación se interrumpió y no se pudo restablecer toda la protección. Revise las hojas antes de continuar. ") + String(e) + (error ? " Error inicial: " + String(error) : ""));
+  }
+  if (error) throw error;
+  return result;
+}
+async function applyProtection61() {
+  message49("Aplicando protección sin contraseña a Base y Auditoría…");
+  await withProtectedSheets61(async () => {
+    await Excel.run(async context => {
+      await readBaseView55(context);
+      const base = context.workbook.worksheets.getItem("EC_Base");
+      const audit = context.workbook.worksheets.getItemOrNullObject("EC_Auditoria");
+      audit.load("name"); context.workbook.protection.load("protected"); await context.sync();
+      if (audit.isNullObject) throw new Error("Falta EC_Auditoria. No se aplicó la protección.");
+      if (context.workbook.protection.protected) throw new Error("Desproteja la estructura del libro antes de continuar. Los PDF necesitan crear y retirar sus hojas temporales.");
+      const headers = audit.getRange("A1:E1"); headers.load("text"); await context.sync();
+      const expected = ["Fecha/Hora Carga", "Usuario Carga", "Área Solicitante", "Motivo de Solicitud", "Detalle de campos cargados o modificados"];
+      if (headers.text[0].some((v, i) => v !== expected[i])) throw new Error("Los encabezados de Auditoría no coinciden. No se aplicó la protección.");
+      // Una única asignación de formato para toda la hoja: también bloquea las futuras filas.
+      base.getRange().format.protection.locked = true;
+      audit.getRange().format.protection.locked = true;
+      base.protection.protect({}); audit.protection.protect({});
+      base.visibility = "Visible"; base.activate(); await context.sync();
+      audit.visibility = "Hidden"; await context.sync();
+    });
+  });
+  message49("Protección aplicada: Base y Auditoría quedaron bloqueadas sin contraseña; Auditoría está oculta. Los botones pueden guardar y actualizar los registros. Formulario, Campos, Catálogos, Confirmación y los datos se conservaron. Para mantenimiento manual: Revisar > Desproteger hoja.", true);
 }
