@@ -1,4 +1,4 @@
-/* Entrega 58. Complemento Formulario Contreras para Excel (Office.js).
+/* Entrega 59. Complemento Formulario Contreras para Excel (Office.js).
    Basado en el script 41 suministrado por Agus. NO pegar en Automatizar.
    La identidad se consulta en cada operación y nunca se lee de una celda.
 */
@@ -10,7 +10,7 @@ const formProtection49 = {
 
 Office.onReady(() => {
   const button = document.getElementById("ec49-save");
-  if (!button) { console.log("Entrega 58: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
+  if (!button) { console.log("Entrega 59: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
   button.addEventListener("click", () => task49(start49));
   document.getElementById("ec49-confirm").addEventListener("click", () => task49(confirm49));
   document.getElementById("ec49-cancel").addEventListener("click", () => {
@@ -55,6 +55,7 @@ Office.onReady(() => {
     cancelClearBase56(); message49("Limpieza de Base cancelada. Todos los registros se conservaron.");
   });
   document.getElementById("ec58-pdf-horizontal").addEventListener("click", () => task49(pdfHorizontal58));
+  document.getElementById("ec59-pdf-vertical").addEventListener("click", () => task49(pdfVertical59));
   selectTab55("form");
   message49("Listo. Complete el formulario de Excel y pulse Cargar / Actualizar aquí.");
 });
@@ -62,7 +63,7 @@ function section49(id, show) { document.getElementById(id).hidden = !show; }
 function message49(text, ok = false) {
   const box = document.getElementById("ec49-message");
   box.textContent = text; box.className = ok ? "message success" : "message";
-  console.log("ENTREGA 58: " + text);
+  console.log("ENTREGA 59: " + text);
 }
 async function task49(action) {
   if (ec49.busy) return;
@@ -464,7 +465,7 @@ async function clean49() {
 }
 
 
-// Entrega 58: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
+// Entrega 59: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
 function searchSignature52(s) {
   return JSON.stringify([s.baseId, s.formId, s.metaId, s.fields, s.start, s.rawBase, s.raw, s.baseline]);
 }
@@ -525,7 +526,7 @@ async function search52(confirmDiscard = false) {
 }
 
 
-// Entrega 58: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
+// Entrega 59: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
 function cancelDelete53() {
   ec49.deletePending = null; section49("ec53-delete-confirm-box", false);
 }
@@ -659,7 +660,7 @@ async function delete53(confirm = false) {
 }
 
 
-// Entrega 58: Nueva carga depende solo del formulario y su mapa, como el script 15.
+// Entrega 59: Nueva carga depende solo del formulario y su mapa, como el script 15.
 function cancelNew54() {
   ec49.newPending = null; section49("ec54-new-confirm-box", false);
 }
@@ -773,7 +774,7 @@ async function new54(confirmDiscard = false) {
 }
 
 
-// Entrega 58: navegación visual del panel. Cambiar pestaña no modifica el libro.
+// Entrega 59: navegación visual del panel. Cambiar pestaña no modifica el libro.
 function selectTab55(tab) {
   if (ec49.busy || !["form", "base"].includes(tab)) return;
   for (const name of ["form", "base"]) {
@@ -818,7 +819,7 @@ async function showAll55() {
 }
 
 
-// Entrega 58: Limpiar Base conserva el formulario y audita cada registro eliminado.
+// Entrega 59: Limpiar Base conserva el formulario y audita cada registro eliminado.
 function cancelClearBase56() {
   ec49.clearBasePending = null; section49("ec56-clear-confirm-box", false);
 }
@@ -947,7 +948,7 @@ async function clearBase56(confirm = false) {
     + ". Se conservaron título, instrucciones, encabezados, formatos, botones y el historial de Auditoría. El formulario conserva sus datos; use Nueva carga para comenzar otra persona." + outcome.warning, true);
 }
 
-// Entrega 58: PDF horizontal local. La hoja temporal no modifica Base ni Auditoría.
+// Entrega 59: PDF horizontal local. La hoja temporal no modifica Base ni Auditoría.
 let pdfDownload58 = null;
 function pdfPlan58(fields, raw) {
   const records = raw.filter(row => row.some(v => String(v).trim() !== ""));
@@ -1025,7 +1026,7 @@ function buildPdfSheet58(sheet, plan) {
     let end = firstBlock + 1;
     while (end < n && String(plan.fields[end][1]).trim() === block) end++;
     const header = sheet.getRangeByIndexes(1, firstBlock, 3, end - firstBlock);
-    header.format.fill.color = block === "Persona" ? "#595959" : block === "Posición/Especialidad" ? "#922D3D" : "#F5F1ED";
+    header.format.fill.color = block === "Persona" ? "#595959" : block === "Posición/Especialidad" ? "#922D3D" : "#FFFFFF";
     header.format.font.color = ["Persona", "Posición/Especialidad"].includes(block) ? "#FFFFFF" : "#000000";
     firstBlock = end;
   }
@@ -1040,6 +1041,7 @@ function buildPdfSheet58(sheet, plan) {
   if (n > 1) legend.merge();
   sheet.getRangeByIndexes(0, 0, 1, 1).values = [["Conformidad de entrega: Quien genera este informe declara haber revisado la información incluida y presta conformidad con los datos entregados."]];
   legend.format.font.bold = true; legend.format.rowHeight = 28;
+  bordersPdf59(table);
   const page = sheet.pageLayout;
   page.orientation = "Landscape"; page.paperSize = "A3";
   page.zoom = { horizontalFitToPages: 1, verticalFitToPages: 1 };
@@ -1102,7 +1104,9 @@ async function restorePdf58(state) {
     await context.sync();
   });
 }
-async function pdfHorizontal58() {
+async function pdfHorizontal58() { return generatePdf59(false); }
+async function generatePdf59(vertical = false) {
+  const label = vertical ? "vertical" : "horizontal";
   if (!Office.context?.document?.getFileAsync) throw new Error("Esta versión de Excel no ofrece la exportación PDF desde el complemento.");
   if (Office.context.requirements && !Office.context.requirements.isSetSupported("ExcelApi", "1.9"))
     throw new Error("Actualice Excel para generar el PDF desde este complemento (ExcelApi 1.9).");
@@ -1111,8 +1115,8 @@ async function pdfHorizontal58() {
   section49("ec49-confirm-box", false); section49("ec52-search-confirm-box", false); section49("ec49-clean-box", false);
   section49("ec58-download-box", false);
   if (pdfDownload58) { URL.revokeObjectURL(pdfDownload58); pdfDownload58 = null; }
-  message49("Preparando el PDF horizontal… Espere a que finalice antes de editar el libro.");
-  const state = { originals: [], activeId: "", tempId: "", tempName: "EC_PDFH_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6) };
+  message49("Preparando el PDF " + label + "… Espere a que finalice antes de editar el libro.");
+  const state = { originals: [], activeId: "", tempId: "", tempName: (vertical ? "EC_PDFV_" : "EC_PDFH_") + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6) };
   let bytes, plan, error, cleanupError;
   try {
     await Excel.run(async context => {
@@ -1122,11 +1126,13 @@ async function pdfHorizontal58() {
       context.workbook.protection.load("protected"); await context.sync();
       if (context.workbook.protection.protected) throw new Error("Desproteja la estructura del libro para generar el PDF. Los datos no se modificaron.");
       plan = await readPdf58(context);
+      if (vertical && plan.count + 3 > 16384) throw new Error("La entrega supera el límite de columnas del informe vertical de Excel.");
       // Snapshot de identidad y visibilidad de cada hoja antes de crear o esconder ninguna.
       state.originals = sheets.items.map(s => ({ id: s.id, visibility: s.visibility }));
       state.activeId = active.id;
       const temp = sheets.add(state.tempName); temp.load("name,id"); await context.sync(); state.tempId = temp.id;
-      buildPdfSheet58(temp, plan); temp.activate(); await context.sync();
+      if (vertical) buildVerticalSheet59(temp, plan); else buildPdfSheet58(temp, plan);
+      temp.activate(); await context.sync();
       state.originals.filter(s => s.visibility === "Visible").forEach(s => sheets.getItem(s.id).visibility = "Hidden");
       await context.sync();
     });
@@ -1139,11 +1145,106 @@ async function pdfHorizontal58() {
     return;
   }
   if (error) throw error;
-  const name = "Informe_EC_Base_" + new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-") + ".pdf";
+  const name = (vertical ? "Informe_EC_Vertical_" : "Informe_EC_Base_") + new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-") + ".pdf";
   if (pdfDownload58) URL.revokeObjectURL(pdfDownload58);
   pdfDownload58 = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
   const link = document.getElementById("ec58-download");
-  link.href = pdfDownload58; link.download = name; link.textContent = "Descargar PDF horizontal";
+  link.href = pdfDownload58; link.download = name; link.textContent = "Descargar PDF " + label;
   section49("ec58-download-box", true); link.click();
-  message49("PDF horizontal generado con " + plan.count + " registros y " + plan.fields.length + " campos. Se solicitó la descarga; si no comienza, pulse Descargar PDF horizontal. Base y Auditoría se conservaron. Revise el archivo antes de limpiar la entrega.", true);
+  message49("PDF " + label + " generado con " + plan.count + " registros y " + plan.fields.length + " campos. Se solicitó la descarga; si no comienza, pulse Descargar PDF " + label + ". Base y Auditoría se conservaron. Revise el archivo antes de limpiar la entrega.", true);
 }
+
+// Entrega 59: misma línea fina negra para bordes internos y perímetro.
+function bordersPdf59(range) {
+  for (const edge of ["InsideHorizontal", "InsideVertical", "EdgeTop", "EdgeBottom", "EdgeLeft", "EdgeRight"]) {
+    const border = range.format.borders.getItem(edge);
+    border.style = "Continuous"; border.weight = "Thin"; border.color = "#000000";
+  }
+  for (const edge of ["DiagonalDown", "DiagonalUp"]) range.format.borders.getItem(edge).style = "None";
+}
+function labelPdf59(value) { return String(value).replace(/\s+/g, " ").trim(); }
+function linesPdf59(text, size, width) {
+  const capacity = Math.max(1, Math.floor((width - 12) / (size * 0.56)));
+  return text.split("\n").reduce((total, paragraph) => {
+    let length = 0, lines = 1;
+    for (const word of paragraph.split(/\s+/)) {
+      if (length > 0 && length + 1 + word.length > capacity) { lines++; length = 0; }
+      length += (length ? 1 : 0) + word.length;
+    }
+    return total + lines;
+  }, 0);
+}
+function buildVerticalSheet59(sheet, plan) {
+  const n = plan.fields.length, columns = plan.count + 3;
+  const full = sheet.getRangeByIndexes(0, 0, n + 1, columns);
+  full.numberFormat = formats49(n + 1, columns);
+  full.format.font.name = "Arial"; full.format.font.size = 11;
+  full.format.font.color = "#000000"; full.format.font.strikethrough = false;
+  full.format.fill.color = "#FFFFFF"; full.format.wrapText = false;
+  full.format.shrinkToFit = true; full.format.verticalAlignment = "Top";
+  full.format.rowHeight = 25;
+  const cells = plan.fields.map((f, i) => ["", "", labelPdf59(f[3]), ...plan.data.map(row => row[i])]);
+  sheet.getRangeByIndexes(1, 0, n, columns).values = cells.map(row => row.map(literal49));
+  const legend = sheet.getRangeByIndexes(0, 0, 1, columns);
+  legend.merge();
+  sheet.getRangeByIndexes(0, 0, 1, 1).values = [["Conformidad de entrega: Quien genera este informe declara haber revisado la información incluida y presta conformidad con los datos entregados."]];
+  legend.format.font.bold = true; legend.format.rowHeight = 18;
+  legend.format.wrapText = false; legend.format.shrinkToFit = true;
+  sheet.getRangeByIndexes(1, 2, n, columns - 2).format.autofitColumns();
+  sheet.getRangeByIndexes(0, 0, n + 1, 1).format.columnWidth = 150;
+  sheet.getRangeByIndexes(0, 1, n + 1, 1).format.columnWidth = 190;
+  sheet.getRangeByIndexes(1, 2, n, 1).format.font.bold = true;
+  const blocks = plan.fields.map(f => labelPdf59(f[1]));
+  const groups = plan.fields.map(f => labelPdf59(f[2]));
+  const heights = plan.fields.map(() => 25);
+  let first = 0;
+  while (first < n) {
+    const block = blocks[first]; let end = first + 1;
+    while (end < n && blocks[end] === block) end++;
+    const blockRange = sheet.getRangeByIndexes(first + 1, 0, end - first, 1);
+    if (end - first > 1) blockRange.merge();
+    const visual = block === "Detalle de la Organización" ? "Detalle de la\nOrganización" : block;
+    sheet.getRangeByIndexes(first + 1, 0, 1, 1).values = [[literal49(visual)]];
+    heights[first] = Math.max(25, linesPdf59(visual, 16, 150) * 20 + 4 - (end - first - 1) * 25);
+    let groupStart = first;
+    while (groupStart < end) {
+      let groupEnd = groupStart + 1;
+      while (groupEnd < end && groups[groupEnd] === groups[groupStart]) groupEnd++;
+      const group = groups[groupStart];
+      if (group) {
+        const groupRange = sheet.getRangeByIndexes(groupStart + 1, 1, groupEnd - groupStart, 1);
+        if (groupEnd - groupStart > 1) groupRange.merge();
+        sheet.getRangeByIndexes(groupStart + 1, 1, 1, 1).values = [[literal49(group)]];
+        heights[groupStart] = Math.max(heights[groupStart], linesPdf59(group, 14, 190) * 18 + 4 - (groupEnd - groupStart - 1) * 25);
+      }
+      groupStart = groupEnd;
+    }
+    first = end;
+  }
+  // Después de combinar: cubrir también los nombres de bloque y de subgrupo.
+  first = 0;
+  while (first < n) {
+    const block = blocks[first]; let end = first + 1;
+    while (end < n && blocks[end] === block) end++;
+    const band = sheet.getRangeByIndexes(first + 1, 0, end - first, columns);
+    const dark = block === "Persona" || block === "Posición/Especialidad";
+    band.format.fill.color = block === "Persona" ? "#595959" : block === "Posición/Especialidad" ? "#922D3D" : "#FFFFFF";
+    band.format.font.color = dark ? "#FFFFFF" : "#000000";
+    first = end;
+  }
+  const descriptors = sheet.getRangeByIndexes(1, 0, n, 2);
+  descriptors.format.font.bold = true; descriptors.format.wrapText = true;
+  descriptors.format.horizontalAlignment = "Left"; descriptors.format.verticalAlignment = "Top";
+  sheet.getRangeByIndexes(1, 0, n, 1).format.font.size = 16;
+  sheet.getRangeByIndexes(1, 1, n, 1).format.font.size = 14;
+  for (let r = 0; r < n; r++) if (heights[r] > 25) sheet.getRangeByIndexes(r + 1, 0, 1, columns).format.rowHeight = heights[r];
+  bordersPdf59(full);
+  const page = sheet.pageLayout;
+  page.orientation = "Portrait"; page.paperSize = "A3";
+  page.zoom = { horizontalFitToPages: 1, verticalFitToPages: 1 };
+  page.printGridlines = false; page.printHeadings = false;
+  page.draftMode = false; page.blackAndWhite = false;
+  page.setPrintArea(full);
+  page.setPrintMargins("Points", { left: 8, right: 8, top: 8, bottom: 8 });
+}
+async function pdfVertical59() { return generatePdf59(true); }

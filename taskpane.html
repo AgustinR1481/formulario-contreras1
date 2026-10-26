@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Formulario Contreras</title>
-  <link rel="stylesheet" href="styles.css?v=58">
+  <link rel="stylesheet" href="styles.css?v=59">
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-  <script defer src="app.js?v=58"></script>
+  <script defer src="app.js?v=59"></script>
 </head>
 <body>
 <main id="ec49">
   <h2>Formulario Contreras</h2>
-  <p class="version">Entrega 58 · Formulario y Base e informes</p>
+  <p class="version">Entrega 59 · Formulario y Base e informes</p>
   <p class="intro">Complete el formulario de Excel. Al guardar se registrará su usuario de Microsoft.</p>
   <p class="identity">Usuario: <strong id="ec49-user">se consulta al ejecutar</strong></p>
   <div class="tabs" role="tablist" aria-label="Secciones del complemento">
@@ -66,6 +66,7 @@
     <h3 class="base-title">Base e informes</h3>
     <p class="intro">Base muestra los campos con contenido en al menos uno de los registros de la entrega. Puede mostrar el esquema completo con el siguiente botón.</p>
     <button id="ec58-pdf-horizontal" class="base-action" type="button">Generar PDF horizontal</button>
+    <button id="ec59-pdf-vertical" class="base-action" type="button">Generar PDF vertical</button>
     <section id="ec58-download-box" hidden><a id="ec58-download" class="download-link" download>Descargar PDF horizontal</a></section>
     <button id="ec55-show-all" class="base-action" type="button">Mostrar todos los campos</button>
     <button id="ec56-clear-base" class="base-action" type="button">Limpiar Base / Eliminar entrega</button>
@@ -75,7 +76,7 @@
       <button id="ec56-clear-confirm" type="button">Sí, eliminar todos los registros de esta entrega</button>
       <button id="ec56-clear-cancel" type="button">Cancelar y conservar Base</button>
     </section>
-    <p class="base-note">El PDF horizontal incluye únicamente los campos con contenido en esta entrega. Revise la descarga antes de limpiar Base. Para el PDF vertical, conserve por ahora su botón actual de Excel.</p>
+    <p class="base-note">Los PDF incluyen únicamente los campos con contenido en esta entrega. Horizontal: un registro por fila. Vertical: un registro por columna. Revise la descarga antes de limpiar Base.</p>
   </div>
   <div id="ec49-message" class="message" role="status" aria-live="polite">Iniciando…</div>
 </main>
