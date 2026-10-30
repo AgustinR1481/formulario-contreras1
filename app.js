@@ -1,4 +1,4 @@
-/* Entrega 64. Complemento Formulario Contreras para Excel (Office.js).
+/* Entrega 65. Complemento Formulario Contreras para Excel (Office.js).
    Basado en el script 41 suministrado por Agus. NO pegar en Automatizar.
    La identidad se consulta en cada operación y nunca se lee de una celda.
 */
@@ -10,7 +10,7 @@ const formProtection49 = {
 
 Office.onReady(() => {
   const button = document.getElementById("ec49-save");
-  if (!button) { console.log("Entrega 64: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
+  if (!button) { console.log("Entrega 65: no se encontró la interfaz del complemento. Revise taskpane.html y actualice el panel."); return; }
   button.addEventListener("click", () => task49(start49));
   document.getElementById("ec49-confirm").addEventListener("click", () => task49(confirm49));
   document.getElementById("ec49-cancel").addEventListener("click", () => {
@@ -63,7 +63,7 @@ function section49(id, show) { document.getElementById(id).hidden = !show; }
 function message49(text, ok = false) {
   const box = document.getElementById("ec49-message");
   box.textContent = text; box.className = ok ? "message success" : "message";
-  console.log("ENTREGA 64: " + text);
+  console.log("ENTREGA 65: " + text);
 }
 async function task49(action, editBaseAudit = true) {
   if (ec49.busy) return;
@@ -112,9 +112,10 @@ function stateRule49(block, label, motive) {
   block = block.trim(); label = label.trim(); motive = motive.trim();
   const identification = ["CUIL", "Nombre", "Apellidos"].includes(label);
   const auto = ["Usuario Carga", "Fecha/Hora Carga"].includes(label);
-  const enabled = block !== "Persona" || motive === "Ingreso" || motive === "Actualización organizativa" || identification;
+  const employeeId = label === "ID Empleado";
+  const enabled = employeeId || block !== "Persona" || motive === "Ingreso" || motive === "Actualización organizativa" || identification;
   const addressOptional = block === "Persona" && ["Piso", "Departamento", "Lote/ Manzana", "Lote/Manzana"].includes(label);
-  const required = !auto && !addressOptional && (
+  const required = !auto && !employeeId && !addressOptional && (
     (block === "Solicitud" && label !== "Notas") || identification ||
     (block === "Persona" && motive === "Ingreso") ||
     (block === "Posición/Especialidad" && motive !== "Actualización organizativa")
@@ -466,7 +467,7 @@ async function clean49() {
 }
 
 
-// Entrega 64: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
+// Entrega 65: Buscar conserva las identidades históricas; no escribe Base ni Auditoría.
 function searchSignature52(s) {
   return JSON.stringify([s.baseId, s.formId, s.metaId, s.fields, s.start, s.rawBase, s.raw, s.baseline]);
 }
@@ -527,7 +528,7 @@ async function search52(confirmDiscard = false) {
 }
 
 
-// Entrega 64: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
+// Entrega 65: eliminación de un registro seleccionado, con cuenta Microsoft y confirmación.
 function cancelDelete53() {
   ec49.deletePending = null; section49("ec53-delete-confirm-box", false);
 }
@@ -661,7 +662,7 @@ async function delete53(confirm = false) {
 }
 
 
-// Entrega 64: Nueva carga depende solo del formulario y su mapa, como el script 15.
+// Entrega 65: Nueva carga depende solo del formulario y su mapa, como el script 15.
 function cancelNew54() {
   ec49.newPending = null; section49("ec54-new-confirm-box", false);
 }
@@ -775,7 +776,7 @@ async function new54(confirmDiscard = false) {
 }
 
 
-// Entrega 64: navegación visual del panel. Cambiar pestaña no modifica el libro.
+// Entrega 65: navegación visual del panel. Cambiar pestaña no modifica el libro.
 function selectTab55(tab) {
   if (ec49.busy || !["form", "base"].includes(tab)) return;
   for (const name of ["form", "base"]) {
@@ -820,7 +821,7 @@ async function showAll55() {
 }
 
 
-// Entrega 64: Limpiar Base conserva el formulario y audita cada registro eliminado.
+// Entrega 65: Limpiar Base conserva el formulario y audita cada registro eliminado.
 function cancelClearBase56() {
   ec49.clearBasePending = null; section49("ec56-clear-confirm-box", false);
 }
@@ -949,7 +950,7 @@ async function clearBase56(confirm = false) {
     + ". Se conservaron título, instrucciones, encabezados, formatos, botones y el historial de Auditoría. El formulario conserva sus datos; use Nueva carga para comenzar otra persona." + outcome.warning, true);
 }
 
-// Entrega 64: PDF horizontal local. La hoja temporal no modifica Base ni Auditoría.
+// Entrega 65: PDF horizontal local. La hoja temporal no modifica Base ni Auditoría.
 let pdfDownload58 = null;
 function pdfPlan58(fields, raw) {
   const records = raw.filter(row => row.some(v => String(v).trim() !== ""));
@@ -1155,7 +1156,7 @@ async function generatePdf59(vertical = false) {
   message49("PDF " + label + " generado con " + plan.count + " registros y " + plan.fields.length + " campos. Se solicitó la descarga; si no comienza, pulse Descargar PDF " + label + ". Base y Auditoría se conservaron. Revise el archivo antes de limpiar la entrega.", true);
 }
 
-// Entrega 64: misma línea fina negra para bordes internos y perímetro.
+// Entrega 65: misma línea fina negra para bordes internos y perímetro.
 function bordersPdf59(range) {
   for (const edge of ["InsideHorizontal", "InsideVertical", "EdgeTop", "EdgeBottom", "EdgeLeft", "EdgeRight"]) {
     const border = range.format.borders.getItem(edge);
@@ -1250,7 +1251,7 @@ function buildVerticalSheet59(sheet, plan) {
 }
 async function pdfVertical59() { return generatePdf59(true); }
 
-// Entrega 64: actualización explícita, una vez. Los botones de trabajo no reescriben las instrucciones.
+// Entrega 65: actualización explícita, una vez. Los botones de trabajo no reescriben las instrucciones.
 function instructionParts60() {
   const form = [];
   const base = [];
@@ -1367,7 +1368,7 @@ async function updateInstructions60() {
   if (completed) message49("Instrucciones actualizadas en Formulario y Base. A1:D1 y A2:D2 de Base quedaron combinadas. Se conservaron los campos, registros, Auditoría, colores y PDF." + (rich ? " Solo los títulos y nombres de botones están en negrita." : " Esta versión de Excel no permite negrita parcial; se dejó el texto normal con títulos en mayúsculas."), true);
 }
 
-// Entrega 64. Protección operativa SIN contraseña. No es un control de confidencialidad.
+// Entrega 65. Protección operativa SIN contraseña. No es un control de confidencialidad.
 // La estructura del libro queda libre para que funcionen los PDF temporales.
 async function restoreProtection61(states) {
   if (!states.length) return;
